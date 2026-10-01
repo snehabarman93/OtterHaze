@@ -63,8 +63,8 @@ code{font-size:12px;overflow-wrap:anywhere}
     <div class="meta"><span id="stamp"></span><span id="source"></span><button class="link" id="refresh" type="button">Refresh</button></div>
     <details>
       <summary>How this works</summary>
-      <p>The page asks NEA's open data service for hourly PM2.5 (tiny smoke particles) and the 24-hour PSI, one number per region. For AQI it converts PM2.5 to a 0 to 500 score with the US EPA scale, then picks a band and an otter. The big number is the average of the five regions.</p>
-      <p>Band names for AQI are read off screenshots of the Haze@SG app, so cut-offs may differ slightly. The island outline is simplified Natural Earth data. Data: <code>api-open.data.gov.sg/v2/real-time/api/pm25</code> and <code>…/psi</code>.</p>
+      <p>The page asks NEA's open data service for hourly PM2.5 (tiny smoke particles) and the 24-hour PSI, one number per region. For AQI it converts PM2.5 to a 0 to 500 score, then picks a band and an otter. The big number is the average of the five regions.</p>
+      <p>The AQI scale and band names were matched to readings and screenshots from the Haze@SG app, so they follow that app rather than one official standard. Above about 140 µg/m³ the scale is an extrapolation. The island outline is simplified Natural Earth data. Data: <code>api-open.data.gov.sg/v2/real-time/api/pm25</code> and <code>…/psi</code>.</p>
     </details>
   </footer>
 </main>
@@ -90,11 +90,15 @@ const PSI_BANDS = [
   {max:300,name:"Very unhealthy", c:"--very"},
   {max:1e9,name:"Hazardous",      c:"--hazard"}
 ];
-// PM2.5 (µg/m³) to AQI, US EPA breakpoints: [conc low, conc high, AQI low, AQI high]
-const BP = [[0,9.0,0,50],[9.1,35.4,51,100],[35.5,55.4,101,150],[55.5,125.4,151,200],[125.5,225.4,201,300],[225.5,325.4,301,500]];
+// PM2.5 (µg/m³) to AQI. Matched against the Haze@SG app on 10 readings (2 hours, 5 regions each).
+// Up to 55.4 it is the older US EPA table, which reproduced all 5 low readings exactly.
+// Above 55.4 the app is steeper than any EPA table, so this uses a straight line fitted to its 5 haze readings.
+// That line is only tested up to about 141 µg/m³.
+const BP = [[0,12.0,0,50],[12.1,35.4,51,100],[35.5,55.4,101,150]];
 function toAqi(c){
   c = Math.floor(c*10)/10;
-  const b = BP.find(x=>c<=x[1]); if(!b) return 500;
+  if(c>55.4) return Math.min(500, Math.round(151 + 1.049*(c-55.5)));
+  const b = BP.find(x=>c<=x[1]);
   return Math.round((b[3]-b[2])/(b[1]-b[0])*(Math.max(c,b[0])-b[0])+b[2]);
 }
 const bandOf = (list,v)=>list.find(b=>v<=b.max);
