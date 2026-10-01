@@ -31,6 +31,8 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--fg);outline-o
 .map{width:100%;height:auto;display:block;overflow:visible}
 .map path{fill:var(--land);stroke:none}
 .pv{font-family:var(--display);font-weight:600;font-size:27px;fill:var(--fg);text-anchor:middle;font-variant-numeric:tabular-nums}
+.pb{font-family:var(--body);font-size:11px;fill:var(--muted);text-anchor:middle}
+.pv.na{fill:var(--muted)}
 .pn{font-family:var(--body);font-size:12px;fill:var(--muted);text-anchor:middle;text-transform:capitalize}
 ul{list-style:none;margin:0;padding:0;width:100%;border-top:1px solid var(--line)}
 li{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
@@ -100,11 +102,19 @@ const ORDER = ["north","west","central","east","south"];
 const $ = id=>document.getElementById(id);
 let DATA = null, MODE = "aqi";
 
-async function get(name, snap){
+// True when a NEA reply really contains the readings we need.
+const shape=(j,k)=>!!(j&&j.data&&j.data.items&&j.data.items[0]&&j.data.items[0].readings&&j.data.items[0].readings[k]);
+const ok=v=>typeof v==="number"&&isFinite(v);
+const ago=ms=>{const m=Math.max(0,Math.round(ms/60000));return m<60?m+" min ago":Math.round(m/60)+" h ago";};
+
+async function get(name, snap, key){
   try{
     const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),6000);
     const r=await fetch(BASE+name,{signal:ctl.signal}); clearTimeout(to);
-    if(!r.ok) throw 0; return {json:await r.json(), live:true};
+    if(!r.ok) throw 0;
+    const j=await r.json();
+    if(!shape(j,key)) throw 0;
+    return {json:j, live:true};
   }catch(e){ return {json:snap, live:false}; }
 }
 
@@ -122,30 +132,42 @@ function draw(){
   const pmItem = pm.json.data.items[0], psiItem = psi.json.data.items[0];
   const pmVals = pmItem.readings.pm25_one_hourly, psiVals = psiItem.readings.psi_twenty_four_hourly;
   let vals, bands, item, unit="", cap;
-  if(MODE==="aqi"){ vals=Object.fromEntries(ORDER.map(r=>[r,toAqi(pmVals[r])])); bands=AQI_BANDS; item=pmItem; cap="Average 1-hour AQI"; }
-  else if(MODE==="pm"){ vals=pmVals; bands=AQI_BANDS; item=pmItem; unit="µg/m³"; cap="Average 1-hour PM2.5"; }
-  else { vals=psiVals; bands=PSI_BANDS; item=psiItem; cap="Average 24-hour PSI"; }
-  const scoreFor = r => MODE==="pm" ? toAqi(pmVals[r]) : vals[r];
-  const avg = ORDER.reduce((s,r)=>s+vals[r],0)/5;
-  const shown = MODE==="pm" ? Math.round(avg*10)/10 : Math.round(avg);
-  const ab = bandOf(bands, MODE==="pm" ? toAqi(avg) : shown);
+  // A region with no usable number becomes null: shown as a dash and left out of the average.
+  if(MODE==="aqi"){ vals=Object.fromEntries(ORDER.map(r=>[r, ok(pmVals[r])?toAqi(pmVals[r]):null])); bands=AQI_BANDS; item=pmItem; cap="Average 1-hour AQI"; }
+  else if(MODE==="pm"){ vals=Object.fromEntries(ORDER.map(r=>[r, ok(pmVals[r])?pmVals[r]:null])); bands=AQI_BANDS; item=pmItem; unit="µg/m³"; cap="Average 1-hour PM2.5"; }
+  else { vals=Object.fromEntries(ORDER.map(r=>[r, ok(psiVals[r])?psiVals[r]:null])); bands=PSI_BANDS; item=psiItem; cap="Average 24-hour PSI"; }
+  const scoreFor = r => vals[r]===null ? null : (MODE==="pm" ? toAqi(vals[r]) : vals[r]);
+  const have = ORDER.filter(r=>vals[r]!==null);
 
-  $("hero").innerHTML = face(bands.indexOf(ab)) +
-    `<div class="big">${shown}</div>` +
-    `<div class="band"><span class="dot" style="--c:var(${ab.c})"></span>${ab.name}</div>` +
-    `<div class="cap">${cap}</div>`;
+  if(!have.length){
+    $("hero").innerHTML = `<div class="big">–</div><div class="band">No data</div><div class="cap">${cap}</div>`;
+  }else{
+    const avg = have.reduce((t,r)=>t+vals[r],0)/have.length;
+    const shown = MODE==="pm" ? Math.round(avg*10)/10 : Math.round(avg);
+    const ab = bandOf(bands, MODE==="pm" ? toAqi(avg) : shown);
+    $("hero").innerHTML = face(bands.indexOf(ab)) +
+      `<div class="big">${shown}</div>` +
+      `<div class="band"><span class="dot" style="--c:var(${ab.c})"></span>${ab.name}</div>` +
+      `<div class="cap">${cap}${have.length<5?` (${have.length} of 5 regions)`:""}</div>`;
+  }
 
   const POS = {"north": [276.0, 74.4], "south": [276.0, 221.0], "east": [420.0, 147.2], "west": [132.0, 147.2], "central": [276.0, 147.2]};
   $("list").innerHTML = ORDER.map(r=>{
-    const b = bandOf(bands, scoreFor(r)), [x,y] = POS[r];
-    return `<g><title>${r}: ${vals[r]} ${unit} ${b.name}</title><text class="pv" style="fill:var(${b.c}-t)" x="${x}" y="${y}">${vals[r]}</text><text class="pn" x="${x}" y="${y+18}">${r}</text></g>`;
+    const [x,y] = POS[r];
+    if(vals[r]===null) return `<g><title>${r}: no data</title><text class="pv na" x="${x}" y="${y}">–</text><text class="pn" x="${x}" y="${y+18}">${r}</text><text class="pb" x="${x}" y="${y+32}">No data</text></g>`;
+    const b = bandOf(bands, scoreFor(r));
+    return `<g><title>${r}: ${vals[r]} ${unit} ${b.name}</title><text class="pv" style="fill:var(${b.c}-t)" x="${x}" y="${y}">${vals[r]}</text><text class="pn" x="${x}" y="${y+18}">${r}</text><text class="pb" x="${x}" y="${y+32}">${b.name}</text></g>`;
   }).join("");
 
-  $("stamp").textContent = new Date(item.timestamp).toLocaleString("en-SG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit",timeZone:"Asia/Singapore"});
-  $("source").textContent = (pm.live && psi.live) ? "Live" : "Saved reading, not live";
+  const t = new Date(item.timestamp), age = Date.now()-t.getTime();
+  $("stamp").textContent = t.toLocaleString("en-SG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit",timeZone:"Asia/Singapore"}) + (isNaN(age)?"":" · "+ago(age));
+  const live = pm.live && psi.live;
+  $("source").textContent = !live ? "Saved reading, not live" : (age>2*3600*1000 ? "Live feed, but the latest reading is old" : "Live");
 }
 
+let REQ = 0;  // only the newest request may update the page
 async function load(){
+  const id = ++REQ;
   $("source").textContent="Loading…";
   // 1) our own small server (works once the page is hosted), 2) NEA directly, 3) saved reading
   try{
@@ -153,10 +175,12 @@ async function load(){
     const r=await fetch("/api/haze",{signal:ctl.signal}); clearTimeout(to);
     if(!r.ok) throw 0;
     const j=await r.json();
-    if(!j.pm25||!j.psi) throw 0;
+    if(!shape(j.pm25,"pm25_one_hourly")||!shape(j.psi,"psi_twenty_four_hourly")) throw 0;
+    if(id!==REQ) return;
     DATA={pm:{json:j.pm25,live:true},psi:{json:j.psi,live:true}}; draw(); return;
   }catch(e){}
-  const [pm,psi] = await Promise.all([get("pm25",SNAP.pm25), get("psi",SNAP.psi)]);
+  const [pm,psi] = await Promise.all([get("pm25",SNAP.pm25,"pm25_one_hourly"), get("psi",SNAP.psi,"psi_twenty_four_hourly")]);
+  if(id!==REQ) return;
   DATA={pm,psi}; draw();
 }
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
