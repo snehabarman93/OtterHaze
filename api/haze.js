@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
   try {
     const [pm25, psi] = await Promise.all(
       ["pm25", "psi"].map(async (name) => {
-        const r = await fetch(BASE + name);
+        const r = await fetch(BASE + name, { signal: AbortSignal.timeout(5000) }); // give up after 5 seconds
         if (!r.ok) throw new Error(name + " " + r.status);
         return r.json();
       })
