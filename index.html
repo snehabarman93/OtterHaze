@@ -102,7 +102,6 @@
       </div>
 
       <div class="map">
-        <div class="map__grid" aria-hidden="true"></div>
         <img class="map__img" src="assets/island.webp" alt="Relief map of Singapore, tinted by haze level in each of five regions">
         <div class="isle-mask" aria-hidden="true">
           <svg viewBox="0 0 1025 645" width="100%" height="100%">
@@ -148,12 +147,12 @@
   <!-- Film grain overlay (strength: --grain in styles.css, 0.7 = 70%) -->
   <svg class="grain" aria-hidden="true" width="100%" height="100%">
     <filter id="grain" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="2" stitchTiles="stitch"/>
       <feColorMatrix type="saturate" values="0"/>
       <feComponentTransfer>
-        <feFuncR type="linear" slope="2" intercept="-0.5"/>
-        <feFuncG type="linear" slope="2" intercept="-0.5"/>
-        <feFuncB type="linear" slope="2" intercept="-0.5"/>
+        <feFuncR type="linear" slope="3" intercept="-1"/>
+        <feFuncG type="linear" slope="3" intercept="-1"/>
+        <feFuncB type="linear" slope="3" intercept="-1"/>
       </feComponentTransfer>
     </filter>
     <rect width="100%" height="100%" filter="url(#grain)"/>

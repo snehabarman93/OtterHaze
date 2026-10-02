@@ -71,3 +71,7 @@ Nav pill, then a hero (band word, tip, metrics card AQI | PM2.5 | PSI, temperatu
 - `data.js` calls `/api/haze` on load, on the Refresh button, and every 10 minutes while the tab is open, then passes the numbers to `HazeWatch.render()`.
 - Anything missing shows as an en dash; stale air data shows "Delayed" in the top bar; sample data only appears with `?demo=good|moderate|unhealthy|very|hazard`.
 - NEA does not publish "feels like", so it is calculated. Other apps use other formulas and may differ by 1-3 °C. The formula is the single `feelsLike` function in `api/haze.js`.
+
+## Panda animation
+
+The panda shakes more as haze rises (see "Panda" at the bottom of `styles.css`): `good` gently bobs, then `moderate`, `unhealthy`, `very` and `hazard` shake progressively more. Strength comes from `--amp` (pixels), `--rot` (degrees) and `--shake-dur` per state, so tune the numbers there. To swap in animated pandas later, replace the files in `assets/` with the same names (`panda-good.webp` etc.; animated WebP works as is) and keep or remove the shake as you like.

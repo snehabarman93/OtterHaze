@@ -8,7 +8,7 @@
 
 :root {
   --font: 'Hanken Grotesk', system-ui, sans-serif;
-  --grain: 0.7;               /* film grain strength, 0 to 1 */
+  --grain: 1;               /* film grain strength, 0 to 1 */
   --glass-blur: 12px;
 }
 
@@ -140,7 +140,6 @@ body { margin: 0; }
 .legend li { display: flex; align-items: center; gap: 8px; }
 
 .map { position: relative; width: 100%; max-width: 940px; margin: 0 auto; aspect-ratio: 1025 / 645; }
-.map__grid { position: absolute; inset: 0; border-radius: 24px; background-image: radial-gradient(circle, var(--map-dot) 1.2px, transparent 1.6px); background-size: 20px 20px; }
 .map__img { position: absolute; inset: 0; width: 100%; height: 100%; filter: var(--map-filter); }
 .isle-mask { position: absolute; inset: 0; mix-blend-mode: multiply; -webkit-mask-image: url(assets/island.webp); mask-image: url(assets/island.webp); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
 .isle-mask svg { display: block; }
@@ -222,3 +221,22 @@ body { margin: 0; }
 .btn:disabled{opacity:.6;cursor:default}
 #status:empty{display:none}
 .nav__brand{white-space:nowrap}
+
+/* ---- Panda: gentle bob when the air is good, shakier as haze rises ---- */
+html { --amp: 0; --rot: 0; --shake-dur: 4s; }
+html[data-state="good"]      { --amp: 0;   --rot: 0;   --shake-dur: 4s; }
+html[data-state="moderate"]  { --amp: 1;   --rot: .6;  --shake-dur: 2.4s; }
+html[data-state="unhealthy"] { --amp: 2.5; --rot: 1.6; --shake-dur: 1.1s; }
+html[data-state="very"]      { --amp: 4;   --rot: 2.8; --shake-dur: .6s; }
+html[data-state="hazard"]    { --amp: 6;   --rot: 4;   --shake-dur: .38s; }
+.panda { animation: shake var(--shake-dur) ease-in-out infinite; transform-origin: 50% 90%; }
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  20% { transform: translate(calc(var(--amp) * -1px), calc(var(--amp) * .4px)) rotate(calc(var(--rot) * -1deg)); }
+  40% { transform: translate(calc(var(--amp) * 1px), calc(var(--amp) * -.4px)) rotate(calc(var(--rot) * 1deg)); }
+  60% { transform: translate(calc(var(--amp) * -.8px), 0) rotate(calc(var(--rot) * -.7deg)); }
+  80% { transform: translate(calc(var(--amp) * .8px), calc(var(--amp) * .3px)) rotate(calc(var(--rot) * .7deg)); }
+}
+html[data-state="good"] .panda { animation-name: bob; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .panda { animation: none; } }
