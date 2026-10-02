@@ -21,6 +21,7 @@
    HazeWatch.render(data, { bandword, tip, tempNote, error })
 
    Preview any state without data:  index.html?demo=good|moderate|unhealthy|very|hazard
+   Fine-tune the preview:           index.html?demo=good&aqi=180&psi=250&temp=22
    ========================================================================== */
 
 (function () {
@@ -42,12 +43,32 @@
 
   // Per state: theme (text/glass colours), which panda, copy, particle count
   const STATE = {
-    good:      { theme: 'light', pose: 'good',      particles: 4,  tip: 'A great day to be outside. Go for that long walk.' },
-    moderate:  { theme: 'light', pose: 'moderate',  particles: 14, tip: 'Fine for most people. If haze bothers you, take long outdoor workouts a little easier.' },
-    unhealthy: { theme: 'mid',   pose: 'unhealthy', particles: 28, tip: 'Sensitive groups should cut back on long or strenuous time outdoors. Keep a mask handy.' },
-    very:      { theme: 'dark',  pose: 'hazard',    particles: 42, tip: 'Keep outdoor time to a minimum and wear a well-fitted mask if you must go out.' },
-    hazard:    { theme: 'dark',  pose: 'hazard',    particles: 58, tip: 'Avoid going outside. Keep windows closed and rest indoors.' }
+    good:      { theme: 'light', particles: 4,  tip: 'A great day to be outside. Go for that long walk.' },
+    moderate:  { theme: 'light', particles: 14, tip: 'Fine for most people. If haze bothers you, take long outdoor workouts a little easier.' },
+    unhealthy: { theme: 'mid',   particles: 28, tip: 'Sensitive groups should cut back on long or strenuous time outdoors. Keep a mask handy.' },
+    very:      { theme: 'dark',  particles: 42, tip: 'Keep outdoor time to a minimum and wear a well-fitted mask if you must go out.' },
+    hazard:    { theme: 'dark',  particles: 58, tip: 'Avoid going outside. Keep windows closed and rest indoors.' }
   };
+
+  // ---- Which panda to show -------------------------------------------------
+  // From mildest to worst. AQI picks the panda; a very high PSI can push it further.
+  const POSES = ['good', 'moderate', 'unhealthy', 'hazard', 'oxygen', 'passout'];
+  //   AQI  0-50 happy | 51-100 worried | 101-150 mask | 151-175 coughing | 176-200 oxygen mask | 201+ passed out
+  //   PSI  over 200 = at least oxygen mask | over 300 = passed out
+  function poseFor(aqi, psi) {
+    let p = aqi > 200 ? 5 : aqi > 175 ? 4 : aqi > 150 ? 3 : aqi > 100 ? 2 : aqi > 50 ? 1 : 0;
+    if (has(psi)) p = Math.max(p, psi > 300 ? 5 : psi > 200 ? 4 : 0);
+    return POSES[p];
+  }
+
+  // ---- Temperature steps (air temperature, degrees C) ----------------------
+  // cold = shivering, normal = nothing, warm = sweating, hot = sweating more
+  const TEMP_STEPS = [
+    { max: 24, key: 'cold' },
+    { max: 30, key: 'normal' },
+    { max: 33, key: 'warm' },
+    { max: 1e9, key: 'hot' }
+  ];
 
   const bandOf = (bands, v) => bands.find((b) => v <= b.max);
   const key = (b) => b.c.slice(2); // '--good' -> 'good'
@@ -112,17 +133,21 @@
       const st = STATE[stateKey];
       root.dataset.state = stateKey;
       root.dataset.theme = st.theme;
-      root.dataset.pose = st.pose;
+      const pose = poseFor(data.aqi, data.psi);
+      root.dataset.pose = pose;
       setText('aqiBand', aqiBand.name);
       setText('tip', st.tip);
       renderParticles(st.particles);
-      showPose(st.pose);
+      showPose(pose);
     } else {
       // No AQI: keep whatever look is on screen, say why
       setText('aqiBand', opts.bandword || 'No data');
       setText('tip', opts.tip || 'Air quality readings are not available right now.');
       if (opts.error) showPose(root.dataset.pose);
     }
+
+    if (has(data.temp)) root.dataset.temp = TEMP_STEPS.find((t) => data.temp <= t.max).key;
+    else delete root.dataset.temp;
 
     setText('aqi', dash(data.aqi));
     setText('pm25', dash(data.pm25));
@@ -203,7 +228,12 @@
   // and data.js fills it from /api/haze. Sample data is never shown as live.
   const params = new URLSearchParams(location.search);
   const demoKey = params.get('demo');
-  if (DEMO[demoKey]) render(DEMO[demoKey]);
+  if (DEMO[demoKey]) {
+    // Optional overrides for previewing, e.g. ?demo=good&aqi=180&psi=250&temp=22
+    const d = JSON.parse(JSON.stringify(DEMO[demoKey]));
+    ['aqi', 'psi', 'temp'].forEach((k) => { const v = parseFloat(params.get(k)); if (isFinite(v)) d[k] = v; });
+    render(d);
+  }
   else if (window.HAZE_INITIAL_DATA) render(window.HAZE_INITIAL_DATA);
   else render(EMPTY, { bandword: 'Loading', tip: 'Fetching the latest readings\u2026' });
 })();
