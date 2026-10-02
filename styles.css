@@ -296,3 +296,5 @@ html[data-pose="hazard"] .pose--hazard { transform-origin: 50% 90%; animation: c
 .pinlist .s b { display: block; font-size: 22px; font-weight: 300; }
 .pinlist .s:nth-child(2) b { font-weight: 500; }
 .pinlist .s small { display: block; margin-top: 3px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+.credit { margin: 8px 0 0; padding-top: 24px; border-top: 1px solid var(--hair); text-align: center; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
