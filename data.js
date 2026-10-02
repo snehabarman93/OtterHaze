@@ -25,7 +25,7 @@
     const regions = {};
     Object.keys(d.regions || {}).forEach((k) => {
       const r = d.regions[k] || {};
-      regions[k] = { pm25: int(r.pm25), psi: int(r.psi) };
+      regions[k] = { aqi: int(r.aqi), pm25: int(r.pm25), psi: int(r.psi) };
     });
     // Round both so the "+N° warmer" note matches the two numbers on screen
     const weatherAt = d.updated && d.updated.weather;

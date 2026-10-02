@@ -9,7 +9,7 @@
      temp:  31,            // air temperature, C
      feels: 37,            // feels-like temperature, C
      regions: {            // per-region readings
-       north:   { pm25: 26, psi: 55 },
+       north:   { aqi: 80, pm25: 26, psi: 55 },
        east:    { pm25: 22, psi: 51 },
        west:    { pm25: 25, psi: 54 },
        south:   { pm25: 21, psi: 49 },
@@ -157,6 +157,7 @@
       const zone = $('.zone[data-zone="' + name + '"]');
       if (band) { pin.dataset.band = band; zone.dataset.band = band; }
       else { delete pin.dataset.band; delete zone.dataset.band; }
+      $('[data-r="aqi"]', pin).textContent = dash(r.aqi);
       $('[data-r="pm25"]', pin).textContent = dash(r.pm25);
       $('[data-r="psi"]', pin).textContent = dash(r.psi);
 
@@ -170,7 +171,7 @@
       n.appendChild(document.createTextNode(name));
       const v = document.createElement('div');
       v.className = 'v';
-      v.innerHTML = 'PM2.5 <strong>' + dash(r.pm25) + '</strong> \u00b7 PSI <strong>' + dash(r.psi) + '</strong>';
+      v.innerHTML = 'AQI <strong>' + dash(r.aqi) + '</strong> \u00b7 PM2.5 <strong>' + dash(r.pm25) + '</strong> \u00b7 PSI <strong>' + dash(r.psi) + '</strong>';
       li.appendChild(n);
       li.appendChild(v);
       list.appendChild(li);
@@ -182,7 +183,7 @@
   function demo(aqi, pm25, psi, temp, feels) {
     const f = { north: 1.1, east: 0.95, west: 1.05, south: 0.9, central: 1 };
     const regions = {};
-    Object.keys(f).forEach((k) => { regions[k] = { pm25: Math.round(pm25 * f[k]), psi: Math.round(psi * f[k]) }; });
+    Object.keys(f).forEach((k) => { regions[k] = { aqi: Math.round(aqi * f[k]), pm25: Math.round(pm25 * f[k]), psi: Math.round(psi * f[k]) }; });
     return { aqi, pm25, psi, temp, feels, regions };
   }
   const DEMO = {

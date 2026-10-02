@@ -170,12 +170,12 @@ body { margin: 0; }
 .pill b { font-size: 22px; font-weight: 300; letter-spacing: -0.02em; }
 .pill small { font-size: 11px; color: var(--muted); }
 .pin--north .pill { transform: translate(-50%, calc(-100% - 18px)); }
-.pin--east .pill { transform: translate(18px, -50%); }
+.pin--east .pill { transform: translate(18px, calc(-100% + 8px)); }
 .pin--west .pill { transform: translate(calc(-100% - 18px), -50%); }
 .pin--south .pill { transform: translate(-50%, 18px); }
 .pin--central .pill { transform: translate(18px, -50%); }
 
-.pinlist { display: none; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.pinlist { display: none; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
 .pinlist li { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 16px; background-color: var(--pill-bg); border: 1px solid var(--pill-border); font-variant-numeric: tabular-nums; }
 .pinlist .n { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 .pinlist .v { font-size: 15px; }
@@ -281,3 +281,5 @@ html[data-pose="hazard"] .pose--hazard { transform-origin: 50% 90%; animation: c
   100% { opacity: 0; transform: translate(var(--dx, 0), -130px) scale(2.4); }
 }
 @media (prefers-reduced-motion: reduce) { .fx i, .pose { animation: none !important; } }
+
+.pinlist .v { white-space: nowrap; }
