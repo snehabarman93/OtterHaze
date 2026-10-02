@@ -74,4 +74,4 @@ Nav pill, then a hero (band word, tip, metrics card AQI | PM2.5 | PSI, temperatu
 
 ## Panda animation
 
-The panda shakes more as haze rises (see "Panda" at the bottom of `styles.css`): `good` gently bobs, then `moderate`, `unhealthy`, `very` and `hazard` shake progressively more. Strength comes from `--amp` (pixels), `--rot` (degrees) and `--shake-dur` per state, so tune the numbers there. To swap in animated pandas later, replace the files in `assets/` with the same names (`panda-good.webp` etc.; animated WebP works as is) and keep or remove the shake as you like.
+The pandas are static images (`assets/panda-good.webp`, `panda-moderate.webp`, `panda-unhealthy.webp`, `panda-hazard.webp`). All movement is done in code, in the "Panda" section at the bottom of `styles.css`: `good` gently bobs, and `moderate`, `unhealthy`, `very` and `hazard` shake progressively more. Strength per state comes from `--amp` (pixels), `--rot` (degrees) and `--shake-dur` (seconds per cycle), so tune the numbers there. It switches off for visitors with "reduce motion" turned on. To change a panda's look, replace the image with the same file name.

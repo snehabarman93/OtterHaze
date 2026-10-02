@@ -82,6 +82,8 @@
           <img class="pose pose--moderate" data-src="assets/panda-moderate.webp" alt="" data-alt="A slightly worried panda">
           <img class="pose pose--unhealthy" data-src="assets/panda-unhealthy.webp" alt="" data-alt="A panda wearing a blue face mask">
           <img class="pose pose--hazard" data-src="assets/panda-hazard.webp" alt="" data-alt="A panda coughing in a cloud of smoke">
+          <div class="fx fx--good" aria-hidden="true"><i style="left:8%;top:12%;--d:0s"></i><i style="left:74%;top:14%;--d:.7s"></i><i style="left:10%;top:42%;--d:1.4s"></i><i style="left:88%;top:38%;--d:2.1s"></i><i style="left:48%;top:4%;--d:2.8s"></i></div>
+          <div class="fx fx--hazard" aria-hidden="true"><i style="left:46%;top:56%;--d:0s"></i><i style="left:52%;top:56%;--d:.8s"></i><i style="left:49%;top:56%;--d:1.6s"></i></div>
         </div>
       </div>
     </section>
@@ -147,12 +149,12 @@
   <!-- Film grain overlay (strength: --grain in styles.css, 0.7 = 70%) -->
   <svg class="grain" aria-hidden="true" width="100%" height="100%">
     <filter id="grain" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="2" stitchTiles="stitch"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/>
       <feColorMatrix type="saturate" values="0"/>
       <feComponentTransfer>
-        <feFuncR type="linear" slope="3" intercept="-1"/>
-        <feFuncG type="linear" slope="3" intercept="-1"/>
-        <feFuncB type="linear" slope="3" intercept="-1"/>
+        <feFuncR type="linear" slope="2" intercept="-0.5"/>
+        <feFuncG type="linear" slope="2" intercept="-0.5"/>
+        <feFuncB type="linear" slope="2" intercept="-0.5"/>
       </feComponentTransfer>
     </filter>
     <rect width="100%" height="100%" filter="url(#grain)"/>
