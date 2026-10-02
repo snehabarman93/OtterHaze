@@ -8,8 +8,8 @@
 
 :root {
   --font: 'Hanken Grotesk', system-ui, sans-serif;
-  --grain: 1;               /* film grain strength, 0 to 1 */
-  --glass-blur: 12px;
+  --grain: 0.4;               /* film grain strength, 0 to 1 */
+  --glass-blur: 28px;
 }
 
 /* ---- Theme: text + glass colours ---------------------------------------- */
@@ -86,10 +86,10 @@ body { margin: 0; }
 /* ---- Glass --------------------------------------------------------------- */
 .glass {
   background-color: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.7) brightness(1.04);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.7) brightness(1.04);
   border: 1px solid var(--glass-border);
-  box-shadow: 0 10px 40px var(--glass-shadow), inset 0 1px 0 var(--glass-hi);
+  box-shadow: 0 14px 44px var(--glass-shadow), inset 0 1px 0 var(--glass-hi), inset 1px 0 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(255,255,255,.07);
   transition: background-color 1.6s ease, border-color 1.6s ease, box-shadow 1.6s ease;
 }
 
@@ -240,3 +240,44 @@ html[data-state="hazard"]    { --amp: 6;   --rot: 4;   --shake-dur: .38s; }
 html[data-state="good"] .panda { animation-name: bob; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @media (prefers-reduced-motion: reduce) { .panda { animation: none; } }
+
+@media (max-width: 720px) { :root { --glass-blur: 18px; } }
+
+/* ---- Panda extras: small movements per pose (all in code) ---- */
+.fx { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .6s ease; }
+html[data-pose="good"] .fx--good, html[data-pose="hazard"] .fx--hazard { opacity: 1; }
+
+/* Good: sparkles twinkle around the panda */
+.fx--good i { position: absolute; width: 14px; height: 14px; --d: 0s; animation: twinkle 3.2s ease-in-out infinite; animation-delay: var(--d); }
+.fx--good i::before, .fx--good i::after { content: ""; position: absolute; left: 50%; top: 50%; background: #F2C14E; border-radius: 2px; transform: translate(-50%, -50%); }
+.fx--good i::before { width: 3px; height: 14px; }
+.fx--good i::after { width: 14px; height: 3px; }
+@keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0); } 40%, 60% { opacity: .95; transform: scale(1) rotate(45deg); } }
+
+/* Moderate: a slow, tired breath */
+html[data-pose="moderate"] .pose--moderate { transform-origin: 50% 95%; animation: sigh 4.5s ease-in-out infinite; }
+@keyframes sigh { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.015, .985); } }
+
+/* Very unhealthy (mask): chest heaves with each breath */
+html[data-pose="unhealthy"] .pose--unhealthy { transform-origin: 50% 95%; animation: heave 1.8s ease-in-out infinite; }
+@keyframes heave { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03, .97); } }
+
+/* Hazardous: coughing fits, with grey puffs drifting off */
+html[data-pose="hazard"] .pose--hazard { transform-origin: 50% 90%; animation: cough 3s ease-in-out infinite; }
+@keyframes cough {
+  0%, 55%, 100% { transform: translateY(0) rotate(0) scale(1); }
+  60% { transform: translateY(-9px) rotate(-1.5deg) scale(1.02, .98); }
+  64% { transform: translateY(3px) rotate(1deg) scale(.99, 1.01); }
+  68% { transform: translateY(-7px) rotate(-1deg) scale(1.02, .98); }
+  74% { transform: translateY(0) rotate(0) scale(1); }
+}
+.fx--hazard i { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: radial-gradient(circle, rgba(150,155,165,.75), rgba(150,155,165,0) 70%); opacity: 0; --d: 0s; animation: puff 3s ease-out infinite; animation-delay: var(--d); }
+.fx--hazard i:nth-child(2) { --dx: 70px; }
+.fx--hazard i:nth-child(1) { --dx: -80px; }
+.fx--hazard i:nth-child(3) { --dx: 10px; }
+@keyframes puff {
+  0%, 56% { opacity: 0; transform: translate(0, 0) scale(.4); }
+  62% { opacity: .9; }
+  100% { opacity: 0; transform: translate(var(--dx, 0), -130px) scale(2.4); }
+}
+@media (prefers-reduced-motion: reduce) { .fx i, .pose { animation: none !important; } }
