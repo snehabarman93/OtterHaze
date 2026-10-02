@@ -9,6 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@200;300;400;500;700&amp;display=swap">
 <link rel="stylesheet" href="styles.css">
+<!-- Vercel Web Analytics: counts visitors and page views, no cookies. Needs Analytics switched on in the Vercel dashboard. -->
+<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 <div class="stage">
@@ -92,12 +95,12 @@
       <div class="isle__head">
         <div>
           <h2>Island view</h2>
-          <p class="isle__sub">AQI, PM2.5 (µg/m³) and 24-hour PSI by region. Colours show PSI.</p>
+          <p class="isle__sub">AQI, PM2.5 (µg/m³) and 24-hour PSI by region. Colours show AQI.</p>
         </div>
-        <ul class="legend" aria-label="PSI bands">
+        <ul class="legend" aria-label="AQI bands">
           <li><span class="dot" data-band="good"></span>Good</li>
           <li><span class="dot" data-band="moderate"></span>Moderate</li>
-          <li><span class="dot" data-band="unhealthy"></span>Unhealthy</li>
+          <li><span class="dot" data-band="unhealthy"></span>Sensitive groups</li>
           <li><span class="dot" data-band="very"></span>Very unhealthy</li>
           <li><span class="dot" data-band="hazard"></span>Hazardous</li>
         </ul>
