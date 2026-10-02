@@ -25,7 +25,7 @@
     const regions = {};
     Object.keys(d.regions || {}).forEach((k) => {
       const r = d.regions[k] || {};
-      regions[k] = { pm25: int(r.pm25), psi: int(r.psi) };
+      regions[k] = { aqi: int(r.aqi), pm25: int(r.pm25), psi: int(r.psi) };
     });
     // Round both so the "+N° warmer" note matches the two numbers on screen
     const weatherAt = d.updated && d.updated.weather;
@@ -54,12 +54,12 @@
   async function load(manual) {
     if (busy) return;
     busy = true;
-    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true'); // not disabled, so keyboard focus stays on the button
     if (manual) btn.textContent = 'Refreshing…';
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), 9000);
     try {
-      const res = await fetch('/api/haze?t=' + Date.now(), { signal: ctl.signal, cache: 'no-store' });
+      const res = await fetch('/api/haze', { signal: ctl.signal, cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const d = await res.json();
       lastGood = d;
@@ -83,7 +83,7 @@
     } finally {
       clearTimeout(timer);
       busy = false;
-      btn.disabled = false;
+      btn.removeAttribute('aria-busy');
       btn.textContent = 'Refresh';
     }
   }
