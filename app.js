@@ -152,7 +152,7 @@
     list.textContent = '';
     REGIONS.forEach((name) => {
       const r = regionsIn[name] || {};
-      const band = has(r.psi) ? key(bandOf(PSI_BANDS, r.psi)) : null;
+      const band = has(r.aqi) ? key(bandOf(AQI_BANDS, r.aqi)) : null; // colour follows AQI, same as the headline
       const pin = $('.pin[data-region="' + name + '"]');
       const zone = $('.zone[data-zone="' + name + '"]');
       if (band) { pin.dataset.band = band; zone.dataset.band = band; }
