@@ -169,11 +169,13 @@
       if (band) dot.dataset.band = band;
       n.appendChild(dot);
       n.appendChild(document.createTextNode(name));
-      const v = document.createElement('div');
-      v.className = 'v';
-      v.innerHTML = 'AQI <strong>' + dash(r.aqi) + '</strong> \u00b7 PM2.5 <strong>' + dash(r.pm25) + '</strong> \u00b7 PSI <strong>' + dash(r.psi) + '</strong>';
       li.appendChild(n);
-      li.appendChild(v);
+      [['AQI', r.aqi], ['PM2.5', r.pm25], ['PSI', r.psi]].forEach((s) => {
+        const d = document.createElement('div');
+        d.className = 's';
+        d.innerHTML = '<b>' + dash(s[1]) + '</b><small>' + s[0] + '</small>';
+        li.appendChild(d);
+      });
       list.appendChild(li);
     });
   }

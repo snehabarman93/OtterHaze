@@ -16,8 +16,12 @@ const ageMin = (ts) => (ts ? Math.round((Date.now() - Date.parse(ts)) / 60000) :
 // Today's date in Singapore (UTC+8), as YYYY-MM-DD. offset = -1 gives yesterday.
 const sgDay = (offset = 0) => new Date(Date.now() + 8 * 3600e3 + offset * 864e5).toISOString().slice(0, 10);
 
-async function getJson(path) {
-  const r = await fetch(BASE + path, { signal: AbortSignal.timeout(5000) }); // give up after 5 seconds
+// Whole request must finish within ~8 s (Vercel's free plan stops functions at 10 s).
+const DEADLINE_MS = 8000;
+async function getJson(path, deadline) {
+  const left = Math.min(4000, deadline - Date.now());
+  if (left <= 0) throw new Error(path + " out of time");
+  const r = await fetch(BASE + path, { signal: AbortSignal.timeout(left) });
   if (!r.ok) throw new Error(path + " " + r.status);
   return r.json();
 }
@@ -61,10 +65,10 @@ const islandPsi = (vals) => islandMean(vals);
 // The plain endpoint can lag. Humidity once returned a reading from the evening before while
 // temperature was current. So ask for today's list instead (it comes newest first), fall back
 // to yesterday's (just after midnight), and only then to the plain endpoint.
-async function latestStationReading(name) {
+async function latestStationReading(name, deadline) {
   for (const path of [name + "?date=" + sgDay(), name + "?date=" + sgDay(-1), name]) {
     try {
-      const j = await getJson(path);
+      const j = await getJson(path, deadline);
       const list = (j && j.data && j.data.readings) || [];
       const usable = list.filter((r) => r && Array.isArray(r.data) && r.data.length && Date.parse(r.timestamp));
       if (usable.length) {
@@ -83,12 +87,13 @@ function stationMean(reading, lo, hi) {
 
 // ---- The handler ----------------------------------------------------------
 module.exports = async (req, res) => {
+  const deadline = Date.now() + DEADLINE_MS;
   const [pm, psi, temp, hum, wind] = await Promise.allSettled([
-    getJson("pm25"),
-    getJson("psi"),
-    latestStationReading("air-temperature"),
-    latestStationReading("relative-humidity"),
-    latestStationReading("wind-speed"),
+    getJson("pm25", deadline),
+    getJson("psi", deadline),
+    latestStationReading("air-temperature", deadline),
+    latestStationReading("relative-humidity", deadline),
+    latestStationReading("wind-speed", deadline),
   ]);
 
   const missing = [];
