@@ -298,3 +298,58 @@ html[data-pose="hazard"] .pose--hazard { transform-origin: 50% 90%; animation: c
 .pinlist .s small { display: block; margin-top: 3px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 
 .credit { margin: 8px 0 0; padding-top: 24px; border-top: 1px solid var(--hair); text-align: center; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+/* ======================================================================
+   Six pandas + temperature effects (all movement is done in code)
+   ====================================================================== */
+.panda__body { position: absolute; inset: 0; }
+html[data-pose="oxygen"] .pose--oxygen, html[data-pose="passout"] .pose--passout { opacity: 1; }
+
+/* Where the forehead / mouth / mask are on each picture (% of the panda box) */
+html { --fx: 47%; --fy: 25%; --mx: 49%; --my: 40%; }
+html[data-pose="good"]      { --fx: 46%; --fy: 24%; --mx: 49%; --my: 38%; }
+html[data-pose="moderate"]  { --fx: 50%; --fy: 25%; --mx: 49%; --my: 42%; }
+html[data-pose="unhealthy"] { --fx: 47%; --fy: 23%; --mx: 49%; --my: 40%; }
+html[data-pose="hazard"]    { --fx: 49%; --fy: 35%; --mx: 49%; --my: 48%; }
+html[data-pose="oxygen"]    { --fx: 55%; --fy: 24%; --mx: 57%; --my: 40%; }
+html[data-pose="passout"]   { --fx: 39%; --fy: 58%; --mx: 38%; --my: 70%; }
+
+/* ---- Oxygen mask pose: slow, heavy breaths and rising bubbles ---- */
+html[data-pose="oxygen"] .pose--oxygen { transform-origin: 50% 95%; animation: gasp 2.6s ease-in-out infinite; }
+@keyframes gasp { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.04, .965); } }
+.fx--oxygen { opacity: 0; }
+html[data-pose="oxygen"] .fx--oxygen { opacity: 1; }
+.fx--oxygen i { position: absolute; left: var(--mx); top: var(--my); width: 9px; height: 9px; margin: -4px 0 0 -4px; border-radius: 50%; border: 1.5px solid rgba(150, 205, 235, .95); background: rgba(255, 255, 255, .45); opacity: 0; animation: bubble 3s ease-out infinite; animation-delay: var(--d); }
+@keyframes bubble { 0% { opacity: 0; transform: translate(0, 0) scale(.5); } 20% { opacity: .95; } 100% { opacity: 0; transform: translate(26px, -70px) scale(1.5); } }
+
+/* ---- Passed out: no shaking, just slow shallow breathing ---- */
+html[data-pose="passout"] .panda { animation: none; }
+html[data-pose="passout"] .pose--passout { transform-origin: 50% 95%; animation: breathe 4.2s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.012, 1.035); } }
+html[data-pose="passout"] .panda-shadow { width: 300px; }
+
+/* ---- Temperature: cold (shivering, icy glow, snow, breath) ---- */
+html[data-temp="cold"] .panda__body { animation: shiver .16s linear infinite; filter: drop-shadow(0 0 14px rgba(125, 195, 255, .9)); }
+@keyframes shiver { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1.6px) rotate(-.4deg); } 75% { transform: translateX(1.6px) rotate(.4deg); } }
+.fx--cold { opacity: 0; }
+html[data-temp="cold"] .fx--cold { opacity: 1; }
+.fx--cold b { position: absolute; top: -4%; width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 8px rgba(160, 215, 255, .95); opacity: 0; animation: snow 3.4s linear infinite; animation-delay: var(--d); }
+@keyframes snow { 0% { opacity: 0; transform: translate(0, 0); } 15% { opacity: .95; } 100% { opacity: 0; transform: translate(14px, 330px); } }
+.fx--cold em { position: absolute; left: var(--mx); top: var(--my); width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 70%); opacity: 0; animation: breath 2.2s ease-out infinite; animation-delay: var(--d); }
+@keyframes breath { 0% { opacity: 0; transform: translate(0, 0) scale(.4); } 25% { opacity: .85; } 100% { opacity: 0; transform: translate(-30px, -34px) scale(1.8); } }
+
+/* ---- Temperature: warm / hot (sweat drops) ---- */
+.fx--sweat { opacity: 0; }
+html[data-temp="warm"] .fx--sweat, html[data-temp="hot"] .fx--sweat { opacity: 1; }
+.fx--sweat u { position: absolute; left: calc(var(--fx) + var(--ox)); top: var(--fy); width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50% 0 50% 50%; transform: rotate(45deg); background: rgba(120, 195, 240, .95); border: 1px solid rgba(255, 255, 255, .85); opacity: 0; animation: sweat 2.4s ease-in infinite; animation-delay: var(--d); }
+.fx--sweat .hot-only { display: none; }
+html[data-temp="hot"] .fx--sweat .hot-only { display: block; }
+html[data-temp="hot"] .fx--sweat u { animation-duration: 1.7s; }
+@keyframes sweat { 0% { opacity: 0; transform: translate(0, 0) rotate(45deg) scale(.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(0, 46px) rotate(45deg) scale(1); } }
+
+html[data-temp="hot"] .panda-shadow { filter: blur(10px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .panda__body, .fx b, .fx em, .fx u, .fx i { animation: none !important; }
+  .fx--cold b, .fx--cold em, .fx--oxygen i, .fx--sweat u { opacity: .6; }
+}
