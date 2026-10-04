@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Haze Watch SG: tester</title>
+<style>
+  :root { --ink:#1c1b19; --muted:#5a574f; --line:#d9d6cf; --bg:#f4f2ee; --card:#fff; --accent:#1f7a4a; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.45 system-ui, sans-serif; color:var(--ink); background:var(--bg); }
+  .wrap { display:grid; grid-template-columns: 340px 1fr; gap:20px; padding:20px; min-height:100vh; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; align-self:start; position:sticky; top:20px; }
+  h1 { font-size:18px; margin:0 0 4px; }
+  p.hint { margin:0 0 14px; color:var(--muted); font-size:13px; }
+  .row { margin:16px 0 4px; display:flex; justify-content:space-between; align-items:baseline; }
+  .row b { font-weight:600; }
+  .row output { font-variant-numeric: tabular-nums; font-size:20px; }
+  input[type=range] { width:100%; accent-color: var(--accent); }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 0; }
+  button { font:inherit; font-size:13px; padding:7px 11px; border-radius:999px; border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; }
+  button:hover { border-color:#999; }
+  button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .now { margin-top:18px; padding:12px; border-radius:12px; background:var(--bg); font-size:13px; }
+  .now div { display:flex; justify-content:space-between; padding:2px 0; }
+  .now span:first-child { color:var(--muted); }
+  .tools { margin-top:14px; display:flex; flex-wrap:wrap; gap:6px; }
+  .stage { display:flex; justify-content:center; }
+  iframe { border:1px solid var(--line); border-radius:16px; background:#fff; width:100%; height:calc(100vh - 40px); min-height:600px; transition: width .2s; }
+  iframe.phone { width:390px; }
+  .sep { height:1px; background:var(--line); margin:18px 0 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel">
+    <h1>Haze Watch tester</h1>
+    <p class="hint">Move a slider or tap a preset. The page on the right redraws with those readings (sample data, not live).</p>
+
+    <div class="row"><b>AQI</b><output id="oAqi">75</output></div>
+    <input id="aqi" type="range" min="0" max="400" step="1" value="75">
+    <div class="chips" data-for="aqi">
+      <button data-v="30">Happy 30</button><button data-v="75">Worried 75</button><button data-v="110">Mask 110</button>
+      <button data-v="140">Cough 140</button><button data-v="180">Oxygen 180</button><button data-v="250">Passed out 250</button><button data-v="320">Hazardous 320</button>
+    </div>
+
+    <div class="row"><b>PSI (24 h)</b><output id="oPsi">52</output></div>
+    <input id="psi" type="range" min="0" max="400" step="1" value="52">
+    <div class="chips" data-for="psi">
+      <button data-v="40">40</button><button data-v="90">90</button><button data-v="150">150</button>
+      <button data-v="250">250 (&gt;200)</button><button data-v="320">320 (&gt;300)</button>
+    </div>
+
+    <div class="row"><b>Temperature °C</b><output id="oTemp">31</output></div>
+    <input id="temp" type="range" min="16" max="40" step="0.1" value="31">
+    <div class="chips" data-for="temp">
+      <button data-v="22">Freezing 22</button><button data-v="28">Normal 28</button><button data-v="30">Warm 30</button><button data-v="32.5">Warm 32.5</button><button data-v="36">Hot 36</button>
+    </div>
+
+    <div class="now" aria-live="polite">
+      <div><span>Panda</span><b id="rPose">–</b></div>
+      <div><span>Mood band (AQI)</span><b id="rState">–</b></div>
+      <div><span>Temperature step</span><b id="rTemp">–</b></div>
+    </div>
+
+    <div class="sep"></div>
+    <div class="tools">
+      <button id="play">▶ Play all AQI levels</button>
+      <button id="view">Phone view</button>
+      <button id="open">Open page alone</button>
+    </div>
+  </div>
+
+  <div class="stage"><iframe id="frame" title="Haze Watch preview"></iframe></div>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const frame = $('frame');
+  const ids = ['aqi', 'psi', 'temp'];
+  let timer = null;
+
+  function url() {
+    return 'index.html?demo=moderate&aqi=' + $('aqi').value + '&psi=' + $('psi').value + '&temp=' + $('temp').value;
+  }
+  function labels() {
+    ids.forEach((k) => { $('o' + k[0].toUpperCase() + k.slice(1)).textContent = $(k).value; });
+    document.querySelectorAll('.chips[data-for]').forEach((c) => {
+      const v = $(c.dataset.for).value;
+      c.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v === v));
+    });
+  }
+  function load() {
+    labels();
+    clearTimeout(timer);
+    timer = setTimeout(() => { frame.src = url(); }, 120);
+  }
+  frame.addEventListener('load', () => {
+    try {
+      const d = frame.contentDocument.documentElement.dataset;
+      const names = { good: 'Happy', moderate: 'Worried', mask: 'Surgical mask', cough: 'Coughing', oxygen: 'Oxygen mask', passout: 'Passed out' };
+      const states = { good: 'Good', moderate: 'Moderate', sensitive: 'Sensitive groups', unhealthy: 'Unhealthy', very: 'Very unhealthy', hazard: 'Hazardous' };
+      const heat = { cold: 'Freezing (shivering)', normal: 'Normal (no effect)', warm: 'Warm (sweating)', hot: 'Hot (sweating more)' };
+      $('rPose').textContent = names[d.pose] || d.pose;
+      $('rState').textContent = states[d.state] || d.state;
+      $('rTemp').textContent = heat[d.temp] || d.temp || '–';
+    } catch (e) { /* the page must be opened from the same site */ }
+  });
+
+  ids.forEach((k) => $(k).addEventListener('input', load));
+  document.querySelectorAll('.chips[data-for] button').forEach((b) => b.addEventListener('click', () => {
+    const t = $(b.parentElement.dataset.for); t.value = b.dataset.v;
+    if (t.id === 'aqi') $('psi').value = Math.min(400, Math.round(b.dataset.v * 0.75)); // keep PSI roughly in step
+    load();
+  }));
+
+  $('view').addEventListener('click', () => {
+    frame.classList.toggle('phone');
+    $('view').textContent = frame.classList.contains('phone') ? 'Desktop view' : 'Phone view';
+  });
+  $('open').addEventListener('click', () => window.open(url(), '_blank'));
+
+  let playing = null;
+  $('play').addEventListener('click', () => {
+    if (playing) { clearInterval(playing); playing = null; $('play').textContent = '▶ Play all AQI levels'; return; }
+    const steps = [30, 75, 110, 140, 180, 250, 320];
+    let i = 0;
+    $('play').textContent = '■ Stop';
+    const next = () => { $('aqi').value = steps[i]; $('psi').value = Math.round(steps[i] * 0.75); load(); i = (i + 1) % steps.length; };
+    next(); playing = setInterval(next, 4500);
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

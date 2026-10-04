@@ -20,17 +20,19 @@
    Any value may be null (shown as an en dash). Second argument is optional:
    HazeWatch.render(data, { bandword, tip, tempNote, error })
 
-   Preview any state without data:  index.html?demo=good|moderate|unhealthy|very|hazard
-   Fine-tune the preview:           index.html?demo=good&aqi=180&psi=250&temp=22
+   Preview any state without data:  index.html?demo=good|moderate|sensitive|unhealthy|very|hazard
+   Fine-tune the preview:           index.html?demo=good&aqi=180&psi=250&temp=22&feels=24
    ========================================================================== */
 
 (function () {
   // ---- Band definitions (c = CSS colour token, see styles.css) ----------
+  // Six AQI levels, same names as the standard US AQI scale (101-150 is shortened to "Sensitive groups")
   const AQI_BANDS = [
     { max: 50,  name: 'Good',             c: '--good' },
     { max: 100, name: 'Moderate',         c: '--moderate' },
-    { max: 150, name: 'Sensitive groups', c: '--unhealthy' },
-    { max: 200, name: 'Very unhealthy',   c: '--very' },
+    { max: 150, name: 'Sensitive groups', c: '--sensitive' },
+    { max: 200, name: 'Unhealthy',        c: '--unhealthy' },
+    { max: 300, name: 'Very unhealthy',   c: '--very' },
     { max: 1e9, name: 'Hazardous',        c: '--hazard' }
   ];
   const PSI_BANDS = [
@@ -41,22 +43,23 @@
     { max: 1e9, name: 'Hazardous',        c: '--hazard' }
   ];
 
-  // Per state: theme (text/glass colours), which panda, copy, particle count
+  // Per state: theme (text/glass colours), copy, particle count
   const STATE = {
     good:      { theme: 'light', particles: 4,  tip: 'A great day to be outside. Go for that long walk.' },
     moderate:  { theme: 'light', particles: 14, tip: 'Fine for most people. If haze bothers you, take long outdoor workouts a little easier.' },
-    unhealthy: { theme: 'mid',   particles: 28, tip: 'Sensitive groups should cut back on long or strenuous time outdoors. Keep a mask handy.' },
-    very:      { theme: 'dark',  particles: 42, tip: 'Keep outdoor time to a minimum and wear a well-fitted mask if you must go out.' },
+    sensitive: { theme: 'mid',   particles: 28, tip: 'Sensitive groups should cut back on long or strenuous time outdoors. Keep a mask handy.' },
+    unhealthy: { theme: 'dark',  particles: 38, tip: 'Everyone may start to feel it. Keep outdoor time short and wear a well-fitted mask if you go out.' },
+    very:      { theme: 'dark',  particles: 48, tip: 'Stay indoors where you can, keep windows closed, and avoid exercising outside.' },
     hazard:    { theme: 'dark',  particles: 58, tip: 'Avoid going outside. Keep windows closed and rest indoors.' }
   };
 
   // ---- Which panda to show -------------------------------------------------
   // From mildest to worst. AQI picks the panda; a very high PSI can push it further.
-  const POSES = ['good', 'moderate', 'unhealthy', 'hazard', 'oxygen', 'passout'];
-  //   AQI  0-50 happy | 51-100 worried | 101-150 mask | 151-175 coughing | 176-200 oxygen mask | 201+ passed out
+  const POSES = ['good', 'moderate', 'mask', 'cough', 'oxygen', 'passout'];
+  //   AQI  0-50 happy | 51-100 worried | 101-125 mask | 126-150 coughing | 151-200 oxygen mask | 201+ passed out
   //   PSI  over 200 = at least oxygen mask | over 300 = passed out
   function poseFor(aqi, psi) {
-    let p = aqi > 200 ? 5 : aqi > 175 ? 4 : aqi > 150 ? 3 : aqi > 100 ? 2 : aqi > 50 ? 1 : 0;
+    let p = aqi > 200 ? 5 : aqi > 150 ? 4 : aqi > 125 ? 3 : aqi > 100 ? 2 : aqi > 50 ? 1 : 0;
     if (has(psi)) p = Math.max(p, psi > 300 ? 5 : psi > 200 ? 4 : 0);
     return POSES[p];
   }
@@ -64,10 +67,10 @@
   // ---- Temperature steps (air temperature, degrees C) ----------------------
   // cold = shivering, normal = nothing, warm = sweating, hot = sweating more
   const TEMP_STEPS = [
-    { max: 24, key: 'cold' },
-    { max: 30, key: 'normal' },
-    { max: 33, key: 'warm' },
-    { max: 1e9, key: 'hot' }
+    { max: 24.9, key: 'cold' },     // 24.9 or below
+    { max: 29.9, key: 'normal' },   // 25.0 to 29.9
+    { max: 33.9, key: 'warm' },     // 30.0 to 33.9
+    { max: 1e9, key: 'hot' }        // 34.0 and above
   ];
 
   const bandOf = (bands, v) => bands.find((b) => v <= b.max);
@@ -107,6 +110,7 @@
   //   opts.error     true = show the neutral panda even though there is no AQI
   const has = (v) => typeof v === 'number' && isFinite(v);
   const dash = (v) => (has(v) ? v : '\u2013');
+  const deg = (v) => (has(v) ? v.toFixed(1) : '\u2013'); // temperatures: always one decimal, 31.0 / 31.5
   const EMPTY = { aqi: null, pm25: null, psi: null, temp: null, feels: null, regions: {} };
   const REGIONS = ['north', 'east', 'west', 'south', 'central'];
 
@@ -152,14 +156,14 @@
     setText('aqi', dash(data.aqi));
     setText('pm25', dash(data.pm25));
     setText('psi', dash(data.psi));
-    setText('temp', dash(data.temp));
-    setText('feels', dash(data.feels));
+    setText('temp', deg(data.temp));
+    setText('feels', deg(data.feels));
     setText('psiBand', psiBand ? psiBand.name : '\u2013');
     setText('tempNote', opts.tempNote || (has(data.temp) ? 'Right now' : 'Unavailable'));
 
     if (has(data.feels) && has(data.temp)) {
-      const diff = Math.round(data.feels - data.temp);
-      setText('feelsNote', diff > 0 ? '+' + diff + '\u00b0 warmer' : diff < 0 ? Math.abs(diff) + '\u00b0 cooler' : 'Same as actual');
+      const diff = Math.round((data.feels - data.temp) * 10) / 10;
+      setText('feelsNote', diff > 0 ? '+' + diff.toFixed(1) + '\u00b0 warmer' : diff < 0 ? Math.abs(diff).toFixed(1) + '\u00b0 cooler' : 'Same as actual');
     } else {
       setText('feelsNote', 'Unavailable');
     }
@@ -216,9 +220,10 @@
   const DEMO = {
     good:      demo(32, 8, 38, 28, 32),
     moderate:  demo(75, 24, 52, 31, 37),
-    unhealthy: demo(128, 46, 112, 32, 38),
-    very:      demo(176, 104, 238, 33, 40),
-    hazard:    demo(240, 190, 330, 34, 41)
+    sensitive: demo(128, 46, 112, 32, 38),
+    unhealthy: demo(176, 104, 238, 33, 40),
+    very:      demo(240, 190, 330, 34, 41),
+    hazard:    demo(330, 260, 380, 34, 41)
   };
 
   window.HazeWatch = { render, DEMO, AQI_BANDS, PSI_BANDS, EMPTY };
@@ -229,9 +234,13 @@
   const params = new URLSearchParams(location.search);
   const demoKey = params.get('demo');
   if (DEMO[demoKey]) {
-    // Optional overrides for previewing, e.g. ?demo=good&aqi=180&psi=250&temp=22
-    const d = JSON.parse(JSON.stringify(DEMO[demoKey]));
-    ['aqi', 'psi', 'temp'].forEach((k) => { const v = parseFloat(params.get(k)); if (isFinite(v)) d[k] = v; });
+    // Optional overrides for previewing, e.g. ?demo=good&aqi=180&psi=250&temp=22&feels=24
+    const base = DEMO[demoKey];
+    const num = (k, dflt) => { const v = parseFloat(params.get(k)); return isFinite(v) ? v : dflt; };
+    const aqi = num('aqi', base.aqi), psi = num('psi', base.psi), temp = num('temp', base.temp);
+    const feels = num('feels', temp + (base.feels - base.temp));   // keeps the "+N warmer" gap unless you set it
+    const pm25 = Math.round(base.pm25 * (aqi / base.aqi));         // regions scale with the AQI you pick
+    const d = demo(aqi, pm25, psi, temp, feels);
     render(d);
   }
   else if (window.HAZE_INITIAL_DATA) render(window.HAZE_INITIAL_DATA);

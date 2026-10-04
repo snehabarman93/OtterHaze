@@ -84,16 +84,18 @@
           <div class="panda__body">
             <img class="pose pose--good" data-src="assets/panda-good.webp" alt="" data-alt="A happy panda surrounded by bamboo leaves">
             <img class="pose pose--moderate" data-src="assets/panda-moderate.webp" alt="" data-alt="A slightly worried panda">
-            <img class="pose pose--unhealthy" data-src="assets/panda-unhealthy.webp" alt="" data-alt="A panda wearing a blue face mask">
-            <img class="pose pose--hazard" data-src="assets/panda-hazard.webp" alt="" data-alt="A panda coughing in a cloud of smoke">
+            <img class="pose pose--mask" data-src="assets/panda-unhealthy.webp" alt="" data-alt="A panda wearing a blue face mask">
+            <img class="pose pose--cough" data-src="assets/panda-hazard.webp" alt="" data-alt="A panda coughing in a cloud of smoke">
             <img class="pose pose--oxygen" data-src="assets/panda-oxygen.webp" alt="" data-alt="A panda breathing through an oxygen mask">
             <img class="pose pose--passout" data-src="assets/panda-passout.webp" alt="" data-alt="A panda lying flat, passed out">
           </div>
           <div class="fx fx--good" aria-hidden="true"><i style="left:8%;top:12%;--d:0s"></i><i style="left:74%;top:14%;--d:.7s"></i><i style="left:10%;top:42%;--d:1.4s"></i><i style="left:88%;top:38%;--d:2.1s"></i><i style="left:48%;top:4%;--d:2.8s"></i></div>
-          <div class="fx fx--hazard" aria-hidden="true"><i style="left:46%;top:56%;--d:0s"></i><i style="left:52%;top:56%;--d:.8s"></i><i style="left:49%;top:56%;--d:1.6s"></i></div>
+          <div class="fx fx--cough" aria-hidden="true"><i style="left:46%;top:56%;--d:0s"></i><i style="left:52%;top:56%;--d:.8s"></i><i style="left:49%;top:56%;--d:1.6s"></i></div>
           <div class="fx fx--oxygen" aria-hidden="true"><i style="--d:0s"></i><i style="--d:1s"></i><i style="--d:2s"></i></div>
           <div class="fx fx--cold" aria-hidden="true"><b style="left:12%;--d:0s"></b><b style="left:30%;--d:1.1s"></b><b style="left:52%;--d:.5s"></b><b style="left:70%;--d:1.7s"></b><b style="left:86%;--d:.9s"></b><em style="--d:0s"></em><em style="--d:.9s"></em></div>
-          <div class="fx fx--sweat" aria-hidden="true"><u style="--ox:-9%;--d:0s"></u><u style="--ox:8%;--d:.8s"></u><u class="hot-only" style="--ox:0%;--d:1.5s"></u><u class="hot-only" style="--ox:16%;--d:.4s"></u></div>
+          <div class="fx fx--sweat" aria-hidden="true">
+            <s style="--u:-0.5;--v:-0.55;--s:2.2;--d:0s"></s><s style="--u:0.4;--v:-0.65;--s:1.9;--d:0.7s"></s><s style="--u:0;--v:-0.1;--s:2.4;--d:1.4s"></s><s style="--u:-0.6;--v:0.35;--s:2.1;--d:2.1s"></s><s style="--u:0.6;--v:0.3;--s:2.2;--d:2.8s"></s><s class="hot-only" style="--u:-0.2;--v:-0.85;--s:1.8;--d:0.35s"></s><s class="hot-only" style="--u:0.8;--v:-0.1;--s:1.9;--d:1.05s"></s><s class="hot-only" style="--u:-0.85;--v:-0.05;--s:1.8;--d:1.75s"></s><s class="hot-only" style="--u:0.15;--v:0.6;--s:2.1;--d:2.45s"></s><s class="hot-only" style="--u:-0.4;--v:0.7;--s:1.8;--d:0.2s"></s><s class="hot-only" style="--u:0.3;--v:-0.4;--s:1.9;--d:1.2s"></s>
+          </div>
         </div>
       </div>
     </section>
@@ -107,7 +109,8 @@
         <ul class="legend" aria-label="AQI bands">
           <li><span class="dot" data-band="good"></span>Good</li>
           <li><span class="dot" data-band="moderate"></span>Moderate</li>
-          <li><span class="dot" data-band="unhealthy"></span>Sensitive groups</li>
+          <li><span class="dot" data-band="sensitive"></span>Sensitive groups</li>
+          <li><span class="dot" data-band="unhealthy"></span>Unhealthy</li>
           <li><span class="dot" data-band="very"></span>Very unhealthy</li>
           <li><span class="dot" data-band="hazard"></span>Hazardous</li>
         </ul>
