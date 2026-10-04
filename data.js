@@ -12,6 +12,7 @@
 
   const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
   const int = (v) => (num(v) === null ? null : Math.round(v));
+  const dec = (v) => (num(v) === null ? null : Math.round(v * 10) / 10); // one decimal, e.g. 31.5
   const clock = (iso) => {
     const d = new Date(iso);
     return isNaN(d) ? '' : d.toLocaleTimeString('en-SG', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Singapore' });
@@ -27,10 +28,10 @@
       const r = d.regions[k] || {};
       regions[k] = { aqi: int(r.aqi), pm25: int(r.pm25), psi: int(r.psi) };
     });
-    // Round both so the "+N° warmer" note matches the two numbers on screen
+    // Temperature and feels like are shown to one decimal (31.5), so the note matches them
     const weatherAt = d.updated && d.updated.weather;
     HazeWatch.render(
-      { aqi: int(d.aqi), pm25: int(d.pm25), psi: int(d.psi), temp: int(d.temp), feels: int(d.feels), regions },
+      { aqi: int(d.aqi), pm25: int(d.pm25), psi: int(d.psi), temp: dec(d.temp), feels: dec(d.feels), regions },
       {
         bandword: 'No data',
         tip: 'Air quality readings are not available right now.',

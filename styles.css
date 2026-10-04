@@ -1,9 +1,9 @@
 /* ==========================================================================
    Haze Watch SG: styles
    The whole look is driven by three attributes JS sets on <html>:
-     data-state = good | moderate | unhealthy | very | hazard   (from AQI band)
+     data-state = good | moderate | sensitive | unhealthy | very | hazard   (from AQI band)
      data-theme = light | mid | dark                            (text/glass colours)
-     data-pose  = good | moderate | unhealthy | hazard          (which panda shows)
+     data-pose  = good | moderate | mask | cough | oxygen | passout (which panda shows)
    ========================================================================== */
 
 :root {
@@ -40,18 +40,19 @@
 
 /* ---- Band colours (readable on light vs dark pages) --------------------- */
 [data-theme="light"], [data-theme="mid"] {
-  --c-good: #1F7A4A; --c-moderate: #8A5C00; --c-unhealthy: #B84A12; --c-very: #A81F3A; --c-hazard: #6B2A7A;
+  --c-good: #1F7A4A; --c-moderate: #8A5C00; --c-sensitive: #B84A12; --c-unhealthy: #A81F3A; --c-very: #6B2A7A; --c-hazard: #7A1030;
 }
 [data-theme="dark"] {
-  --c-good: #6FD99B; --c-moderate: #F2C14E; --c-unhealthy: #FF9A5C; --c-very: #FF7A8F; --c-hazard: #D79BE8;
+  --c-good: #6FD99B; --c-moderate: #F2C14E; --c-sensitive: #FF9A5C; --c-unhealthy: #FF7A8F; --c-very: #D79BE8; --c-hazard: #E04660;
 }
 
 /* ---- State: background scene -------------------------------------------- */
 [data-state="good"]      { --bg: #EEF4EC; --wash: #CFE6C4; --wash2: #F3EDC4; --haze-c: #DDE8DD; --haze: 0.08; --sun-c: #FFF3C4; --sun: 1;    --halo: 0.3;  --band-size: 120px; --part-a: #8A7A66; --part-b: #B08A5E; }
 [data-state="moderate"]  { --bg: #DAD9D2; --wash: #E9DDB4; --wash2: #CBD6C0; --haze-c: #CBC9C0; --haze: 0.3;  --sun-c: #FFEBB0; --sun: 0.7;  --halo: 0.3;  --band-size: 120px; --part-a: #8A7A66; --part-b: #B08A5E; }
-[data-state="unhealthy"] { --bg: #A3A19C; --wash: #C0A98E; --wash2: #8F9A93; --haze-c: #B5B1A8; --haze: 0.45; --sun-c: #FFD9A0; --sun: 0.3;  --halo: 0.35; --band-size: 84px;  --part-a: #5C5648; --part-b: #7A6A52; }
-[data-state="very"]      { --bg: #5A5957; --wash: #7A6A66; --wash2: #4A4D50; --haze-c: #6E6C69; --haze: 0.55; --sun-c: #F5B98A; --sun: 0.15; --halo: 0.5;  --band-size: 92px;  --part-a: #D8D2C8; --part-b: #B9B2A6; }
-[data-state="hazard"]    { --bg: #2A2A2D; --wash: #4A3F47; --wash2: #3A3D42; --haze-c: #3A3A3D; --haze: 0.6;  --sun-c: #E8A08A; --sun: 0.08; --halo: 0.6;  --band-size: 108px; --part-a: #D8D2C8; --part-b: #B9B2A6; }
+[data-state="sensitive"] { --bg: #A3A19C; --wash: #C0A98E; --wash2: #8F9A93; --haze-c: #B5B1A8; --haze: 0.45; --sun-c: #FFD9A0; --sun: 0.3;  --halo: 0.35; --band-size: 84px;  --part-a: #5C5648; --part-b: #7A6A52; }
+[data-state="unhealthy"] { --bg: #5A5957; --wash: #7A6A66; --wash2: #4A4D50; --haze-c: #6E6C69; --haze: 0.55; --sun-c: #F5B98A; --sun: 0.15; --halo: 0.5;  --band-size: 92px;  --part-a: #D8D2C8; --part-b: #B9B2A6; }
+[data-state="very"]      { --bg: #3B393B; --wash: #5A4560; --wash2: #343840; --haze-c: #4A484B; --haze: 0.58; --sun-c: #E8A08A; --sun: 0.1;  --halo: 0.55; --band-size: 92px;  --part-a: #D8D2C8; --part-b: #B9B2A6; }
+[data-state="hazard"]    { --bg: #1E1C1F; --wash: #4A2F3A; --wash2: #2E3036; --haze-c: #2E2E31; --haze: 0.65; --sun-c: #D98A7A; --sun: 0.06; --halo: 0.6;  --band-size: 108px; --part-a: #D8D2C8; --part-b: #B9B2A6; }
 
 /* ---- Base --------------------------------------------------------------- */
 * { box-sizing: border-box; }
@@ -129,7 +130,7 @@ body { margin: 0; }
 .panda { position: relative; width: 440px; height: 440px; }
 .pose { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.8s ease; }
 [data-pose="good"] .pose--good, [data-pose="moderate"] .pose--moderate,
-[data-pose="unhealthy"] .pose--unhealthy, [data-pose="hazard"] .pose--hazard { opacity: 1; }
+[data-pose="mask"] .pose--mask, [data-pose="cough"] .pose--cough { opacity: 1; }
 
 /* ---- Island view --------------------------------------------------------- */
 .isle { display: flex; flex-direction: column; gap: 22px; padding: 32px; border-radius: 36px; }
@@ -149,6 +150,7 @@ body { margin: 0; }
 /* Band colour hooks: JS sets data-band on dots and zones */
 [data-band="good"] { --band: var(--c-good); }
 [data-band="moderate"] { --band: var(--c-moderate); }
+[data-band="sensitive"] { --band: var(--c-sensitive); }
 [data-band="unhealthy"] { --band: var(--c-unhealthy); }
 [data-band="very"] { --band: var(--c-very); }
 [data-band="hazard"] { --band: var(--c-hazard); }
@@ -157,6 +159,7 @@ body { margin: 0; }
 .pin[data-band] { --pin: var(--band); }
 [data-state="good"] { --state-color: var(--c-good); }
 [data-state="moderate"] { --state-color: var(--c-moderate); }
+[data-state="sensitive"] { --state-color: var(--c-sensitive); }
 [data-state="unhealthy"] { --state-color: var(--c-unhealthy); }
 [data-state="very"] { --state-color: var(--c-very); }
 [data-state="hazard"] { --state-color: var(--c-hazard); }
@@ -235,8 +238,9 @@ body { margin: 0; }
 html { --amp: 0; --rot: 0; --shake-dur: 4s; }
 html[data-state="good"]      { --amp: 0;   --rot: 0;   --shake-dur: 4s; }
 html[data-state="moderate"]  { --amp: 1;   --rot: .6;  --shake-dur: 2.4s; }
-html[data-state="unhealthy"] { --amp: 2.5; --rot: 1.6; --shake-dur: 1.1s; }
-html[data-state="very"]      { --amp: 4;   --rot: 2.8; --shake-dur: .6s; }
+html[data-state="sensitive"] { --amp: 2.5; --rot: 1.6; --shake-dur: 1.1s; }
+html[data-state="unhealthy"] { --amp: 4;   --rot: 2.8; --shake-dur: .6s; }
+html[data-state="very"]      { --amp: 5;   --rot: 3.4; --shake-dur: .45s; }
 html[data-state="hazard"]    { --amp: 6;   --rot: 4;   --shake-dur: .38s; }
 .panda { animation: shake var(--shake-dur) ease-in-out infinite; transform-origin: 50% 90%; }
 @keyframes shake {
@@ -254,7 +258,7 @@ html[data-state="good"] .panda { animation-name: bob; }
 
 /* ---- Panda extras: small movements per pose (all in code) ---- */
 .fx { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .6s ease; }
-html[data-pose="good"] .fx--good, html[data-pose="hazard"] .fx--hazard { opacity: 1; }
+html[data-pose="good"] .fx--good, html[data-pose="cough"] .fx--cough { opacity: 1; }
 
 /* Good: sparkles twinkle around the panda */
 .fx--good i { position: absolute; width: 14px; height: 14px; --d: 0s; animation: twinkle 3.2s ease-in-out infinite; animation-delay: var(--d); }
@@ -267,12 +271,12 @@ html[data-pose="good"] .fx--good, html[data-pose="hazard"] .fx--hazard { opacity
 html[data-pose="moderate"] .pose--moderate { transform-origin: 50% 95%; animation: sigh 4.5s ease-in-out infinite; }
 @keyframes sigh { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.015, .985); } }
 
-/* Very unhealthy (mask): chest heaves with each breath */
-html[data-pose="unhealthy"] .pose--unhealthy { transform-origin: 50% 95%; animation: heave 1.8s ease-in-out infinite; }
+/* Mask pose: chest heaves with each breath */
+html[data-pose="mask"] .pose--mask { transform-origin: 50% 95%; animation: heave 1.8s ease-in-out infinite; }
 @keyframes heave { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03, .97); } }
 
-/* Hazardous: coughing fits, with grey puffs drifting off */
-html[data-pose="hazard"] .pose--hazard { transform-origin: 50% 90%; animation: cough 3s ease-in-out infinite; }
+/* Cough pose: coughing fits, with grey puffs drifting off */
+html[data-pose="cough"] .pose--cough { transform-origin: 50% 90%; animation: cough 3s ease-in-out infinite; }
 @keyframes cough {
   0%, 55%, 100% { transform: translateY(0) rotate(0) scale(1); }
   60% { transform: translateY(-9px) rotate(-1.5deg) scale(1.02, .98); }
@@ -280,10 +284,10 @@ html[data-pose="hazard"] .pose--hazard { transform-origin: 50% 90%; animation: c
   68% { transform: translateY(-7px) rotate(-1deg) scale(1.02, .98); }
   74% { transform: translateY(0) rotate(0) scale(1); }
 }
-.fx--hazard i { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: radial-gradient(circle, rgba(150,155,165,.75), rgba(150,155,165,0) 70%); opacity: 0; --d: 0s; animation: puff 3s ease-out infinite; animation-delay: var(--d); }
-.fx--hazard i:nth-child(2) { --dx: 70px; }
-.fx--hazard i:nth-child(1) { --dx: -80px; }
-.fx--hazard i:nth-child(3) { --dx: 10px; }
+.fx--cough i { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: radial-gradient(circle, rgba(150,155,165,.75), rgba(150,155,165,0) 70%); opacity: 0; --d: 0s; animation: puff 3s ease-out infinite; animation-delay: var(--d); }
+.fx--cough i:nth-child(2) { --dx: 70px; }
+.fx--cough i:nth-child(1) { --dx: -80px; }
+.fx--cough i:nth-child(3) { --dx: 10px; }
 @keyframes puff {
   0%, 56% { opacity: 0; transform: translate(0, 0) scale(.4); }
   62% { opacity: .9; }
@@ -309,8 +313,8 @@ html[data-pose="oxygen"] .pose--oxygen, html[data-pose="passout"] .pose--passout
 html { --fx: 47%; --fy: 25%; --mx: 49%; --my: 40%; }
 html[data-pose="good"]      { --fx: 46%; --fy: 24%; --mx: 49%; --my: 38%; }
 html[data-pose="moderate"]  { --fx: 50%; --fy: 25%; --mx: 49%; --my: 42%; }
-html[data-pose="unhealthy"] { --fx: 47%; --fy: 23%; --mx: 49%; --my: 40%; }
-html[data-pose="hazard"]    { --fx: 49%; --fy: 35%; --mx: 49%; --my: 48%; }
+html[data-pose="mask"] { --fx: 47%; --fy: 23%; --mx: 49%; --my: 40%; }
+html[data-pose="cough"]    { --fx: 49%; --fy: 35%; --mx: 49%; --my: 48%; }
 html[data-pose="oxygen"]    { --fx: 55%; --fy: 24%; --mx: 57%; --my: 40%; }
 html[data-pose="passout"]   { --fx: 39%; --fy: 58%; --mx: 38%; --my: 70%; }
 
@@ -338,18 +342,48 @@ html[data-temp="cold"] .fx--cold { opacity: 1; }
 .fx--cold em { position: absolute; left: var(--mx); top: var(--my); width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 70%); opacity: 0; animation: breath 2.2s ease-out infinite; animation-delay: var(--d); }
 @keyframes breath { 0% { opacity: 0; transform: translate(0, 0) scale(.4); } 25% { opacity: .85; } 100% { opacity: 0; transform: translate(-30px, -34px) scale(1.8); } }
 
-/* ---- Temperature: warm / hot (sweat drops) ---- */
-.fx--sweat { opacity: 0; }
+/* ---- Temperature: warm / hot (sweating) ----
+   Sweat beads form on the panda's face, grow, slide a little and fade. They can never leave the face:
+   each bead is placed inside the head oval of the current pose (--hx --hy --hrx --hry, % of the panda box)
+   and the whole layer is clipped to that oval. Bead size (--s) is a percent of the panda's width (cqw), so beads
+   shrink with the panda on phones. Warm shows 5 beads, hot shows 11 and moves faster. */
+html { --hx: 49%; --hy: 40%; --hrx: 21%; --hry: 15%; }
+html[data-pose="good"]     { --hx: 49%; --hy: 40%; --hrx: 23%; --hry: 17%; }
+html[data-pose="moderate"] { --hx: 52%; --hy: 37%; --hrx: 23%; --hry: 16%; }
+html[data-pose="mask"]     { --hx: 48%; --hy: 24%; --hrx: 20%; --hry: 8%; }   /* above the face mask */
+html[data-pose="cough"]    { --hx: 50%; --hy: 45%; --hrx: 13%; --hry: 10%; }
+html[data-pose="oxygen"]   { --hx: 58%; --hy: 20%; --hrx: 19%; --hry: 9%; }   /* above the oxygen mask */
+html[data-pose="passout"]  { --hx: 42%; --hy: 68%; --hrx: 19%; --hry: 11%; }
+.panda { container-type: inline-size; }
+.fx--sweat { opacity: 0; clip-path: ellipse(var(--hrx) var(--hry) at var(--hx) var(--hy)); }
 html[data-temp="warm"] .fx--sweat, html[data-temp="hot"] .fx--sweat { opacity: 1; }
-.fx--sweat u { position: absolute; left: calc(var(--fx) + var(--ox)); top: var(--fy); width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50% 0 50% 50%; transform: rotate(45deg); background: rgba(120, 195, 240, .95); border: 1px solid rgba(255, 255, 255, .85); opacity: 0; animation: sweat 2.4s ease-in infinite; animation-delay: var(--d); }
+.fx--sweat s {
+  position: absolute; display: none; text-decoration: none;
+  left: calc(var(--hx) + var(--u) * var(--hrx) * .85); top: calc(var(--hy) + var(--v) * var(--hry) * .85);
+  --bead: max(6px, calc(var(--s, 2.1) * 1cqw));   /* scales with the panda, never below 6px */
+  width: var(--bead); height: var(--bead); margin: calc(var(--bead) / -2) 0 0 calc(var(--bead) / -2);
+  border-radius: 50% 0 50% 50%; transform: rotate(-45deg);
+  background: linear-gradient(135deg, rgba(214, 240, 254, .98), rgba(120, 190, 238, .97));
+  border: max(1px, .3cqw) solid rgba(70, 140, 205, .85); box-shadow: 0 1px 2px rgba(40, 90, 140, .3);
+  opacity: 0; animation: bead 3.4s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+.fx--sweat s::after { content: ""; position: absolute; left: 22%; top: 40%; width: 24%; height: 30%; border-radius: 50%; background: rgba(255, 255, 255, .95); transform: rotate(20deg); }
 .fx--sweat .hot-only { display: none; }
-html[data-temp="hot"] .fx--sweat .hot-only { display: block; }
-html[data-temp="hot"] .fx--sweat u { animation-duration: 1.7s; }
-@keyframes sweat { 0% { opacity: 0; transform: translate(0, 0) rotate(45deg) scale(.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(0, 46px) rotate(45deg) scale(1); } }
+.fx--sweat s:not(.hot-only), html[data-temp="hot"] .fx--sweat s { display: block; }
+html[data-temp="hot"] .fx--sweat s { animation-duration: 2.4s; }
+@keyframes bead {
+  0%   { opacity: 0; transform: translate(0, 0) rotate(-45deg) scale(.3); }
+  18%  { opacity: 1; transform: translate(0, 0) rotate(-45deg) scale(1); }
+  70%  { opacity: 1; transform: translate(0, 1.6cqw) rotate(-45deg) scale(1.05); }
+  100% { opacity: 0; transform: translate(0, 3.6cqw) rotate(-45deg) scale(.9); }
+}
+/* Hot: the whole panda pants a little (only when it is not shivering) */
+html[data-temp="hot"] .panda__body { transform-origin: 50% 95%; animation: pant .7s ease-in-out infinite; }
+@keyframes pant { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.012, .988); } }
 
 html[data-temp="hot"] .panda-shadow { filter: blur(10px); }
 
 @media (prefers-reduced-motion: reduce) {
-  .panda__body, .fx b, .fx em, .fx u, .fx i { animation: none !important; }
-  .fx--cold b, .fx--cold em, .fx--oxygen i, .fx--sweat u { opacity: .6; }
+  .panda__body, .fx b, .fx em, .fx u, .fx s, .fx i { animation: none !important; }
+  .fx--cold b, .fx--cold em, .fx--oxygen i, .fx--sweat u, .fx--sweat s { opacity: .6; }
 }
