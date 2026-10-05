@@ -31,6 +31,12 @@ HazeWatch.render({
 
 Call it after each fetch (the page already re-renders cleanly on repeat calls). To skip the sample on first paint, set `window.HAZE_INITIAL_DATA = {...}` before `app.js` loads. The Refresh button (`#refresh`) has no handler yet; attach your fetch to it.
 
+## When NEA hiccups
+
+- The function retries a failed request once, ignores an hourly or 5-minute record that is empty or half filled in and uses the newest complete one, and keeps its last good numbers (under 3 hours old) if a request comes back empty.
+- An incomplete answer is cached for 15 seconds only (a complete one for 5 minutes), and the page looks again after 45 seconds, up to 4 times.
+- The page keeps showing the last good values for any part that comes back empty, with a note. If there has never been a good answer, it says "Air data unavailable".
+
 ## Haze states
 
 The page state comes from the AQI band (`AQI_BANDS` in `app.js`, six levels using the standard US AQI names). Region tints and pins also follow the AQI. The 24-hour PSI has its own five names (`PSI_BANDS`).

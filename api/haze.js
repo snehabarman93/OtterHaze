@@ -18,12 +18,21 @@ const sgDay = (offset = 0) => new Date(Date.now() + 8 * 3600e3 + offset * 864e5)
 
 // Whole request must finish within ~8 s (Vercel's free plan stops functions at 10 s).
 const DEADLINE_MS = 8000;
-async function getJson(path, deadline) {
-  const left = Math.min(4000, deadline - Date.now());
-  if (left <= 0) throw new Error(path + " out of time");
-  const r = await fetch(BASE + path, { signal: AbortSignal.timeout(left) });
-  if (!r.ok) throw new Error(path + " " + r.status);
-  return r.json();
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// One quick retry: NEA's open API sometimes answers 429/5xx for a moment, especially from shared hosting.
+async function getJson(path, deadline, tries = 2) {
+  let err = new Error(path + " out of time");
+  for (let i = 0; i < tries; i++) {
+    const left = Math.min(4000, deadline - Date.now());
+    if (left <= 0) break;
+    try {
+      const r = await fetch(BASE + path, { signal: AbortSignal.timeout(left) });
+      if (r.ok) return await r.json();
+      err = new Error(path + " " + r.status);
+    } catch (e) { err = e; }
+    if (i < tries - 1) await sleep(300);
+  }
+  throw err;
 }
 
 // ---- PM2.5 to AQI ---------------------------------------------------------
@@ -61,62 +70,89 @@ const islandMean = (vals) => {
 };
 const islandPsi = (vals) => islandMean(vals);
 
+// ---- Air quality feeds (PM2.5 and PSI) ------------------------------------
+// An hourly record can show up before its numbers are filled in. So a record only counts if at
+// least 3 of the 5 regions have a number. If the newest one does not, use the newest one that does
+// (today's list, then yesterday's).
+const validRegions = (vals) => !!vals && REGIONS.filter((r) => num(vals[r]) !== null).length >= 3;
+async function latestAir(name, key, deadline) {
+  for (const path of [name, name + "?date=" + sgDay(), name + "?date=" + sgDay(-1)]) {
+    try {
+      const items = ((await getJson(path, deadline)).data || {}).items || [];
+      const ok = items.filter((it) => it && it.readings && validRegions(it.readings[key]) && Date.parse(it.timestamp));
+      if (ok.length) {
+        const best = ok.reduce((a, b) => (Date.parse(b.timestamp) > Date.parse(a.timestamp) ? b : a));
+        return { ts: best.timestamp, vals: best.readings[key] };
+      }
+    } catch (e) { /* try the next form */ }
+  }
+  return null;
+}
+
 // ---- Weather station feeds ------------------------------------------------
 // The plain endpoint can lag. Humidity once returned a reading from the evening before while
 // temperature was current. So ask for today's list instead (it comes newest first), fall back
 // to yesterday's (just after midnight), and only then to the plain endpoint.
-async function latestStationReading(name, deadline) {
-  for (const path of [name + "?date=" + sgDay(), name + "?date=" + sgDay(-1), name]) {
-    try {
-      const j = await getJson(path, deadline);
-      const list = (j && j.data && j.data.readings) || [];
-      const usable = list.filter((r) => r && Array.isArray(r.data) && r.data.length && Date.parse(r.timestamp));
-      if (usable.length) {
-        return usable.reduce((a, b) => (Date.parse(b.timestamp) > Date.parse(a.timestamp) ? b : a));
-      }
-    } catch (e) { /* try the next form */ }
-  }
-  throw new Error(name + ": no readings");
-}
-
+// The newest 5-minute record is sometimes only half filled in, so the newest record with at least
+// 3 sensible stations is used, not simply the newest record.
 // Average of the stations whose value is a sensible number. Needs at least 3 stations.
 function stationMean(reading, lo, hi) {
   const v = reading.data.map((d) => num(d && d.value)).filter((x) => x !== null && x >= lo && x <= hi);
   return v.length >= 3 ? mean(v) : null;
 }
+async function latestStation(name, lo, hi, deadline) {
+  let best = { ts: null, v: null };
+  for (const path of [name + "?date=" + sgDay(), name + "?date=" + sgDay(-1), name]) {
+    try {
+      const list = (((await getJson(path, deadline)).data || {}).readings || [])
+        .filter((r) => r && Array.isArray(r.data) && r.data.length && Date.parse(r.timestamp))
+        .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
+      for (const r of list) {
+        const v = stationMean(r, lo, hi);
+        if (v === null) continue;
+        if (ageMin(r.timestamp) <= MAX_WEATHER_AGE_MIN) return { ts: r.timestamp, v };
+        if (best.ts === null || Date.parse(r.timestamp) > Date.parse(best.ts)) best = { ts: r.timestamp, v };
+        break; // older than this in the same list is older still
+      }
+    } catch (e) { /* try the next form */ }
+  }
+  return best; // nothing fresh: report how old the best one was (the caller treats it as missing)
+}
 
 // ---- The handler ----------------------------------------------------------
+// Last good answers kept in memory (only helps while this server instance stays warm). If NEA
+// hiccups for a moment, the page keeps showing the last good numbers instead of dashes, as long as
+// they are under 3 hours old. The ages in the answer stay honest.
+const MAX_AIR_AGE_MIN = 180;
+let lastAir = null, lastWx = null;
+
 module.exports = async (req, res) => {
   const deadline = Date.now() + DEADLINE_MS;
   const [pm, psi, temp, hum, wind] = await Promise.allSettled([
-    getJson("pm25", deadline),
-    getJson("psi", deadline),
-    latestStationReading("air-temperature", deadline),
-    latestStationReading("relative-humidity", deadline),
-    latestStationReading("wind-speed", deadline),
+    latestAir("pm25", "pm25_one_hourly", deadline),
+    latestAir("psi", "psi_twenty_four_hourly", deadline),
+    latestStation("air-temperature", 15, 45, deadline),   // degrees C
+    latestStation("relative-humidity", 1, 100, deadline), // percent
+    latestStation("wind-speed", 0, 60, deadline),         // knots
   ]);
 
   const missing = [];
-  const item = (s, key) => {
-    const it = s.status === "fulfilled" && s.value && s.value.data && s.value.data.items && s.value.data.items[0];
-    return it && it.readings && it.readings[key] ? { ts: it.timestamp, vals: it.readings[key] } : null;
-  };
-  const pmItem = item(pm, "pm25_one_hourly");
-  const psiItem = item(psi, "psi_twenty_four_hourly");
+  const val = (s) => (s.status === "fulfilled" ? s.value : null);
+  const pmItem = val(pm), psiItem = val(psi);
   if (!pmItem) missing.push("pm25");
   if (!psiItem) missing.push("psi");
 
   // Weather: use a reading only if it is recent enough.
-  const weather = (s, name, lo, hi) => {
-    if (s.status !== "fulfilled") { missing.push(name); return { v: null, ts: null }; }
-    const age = ageMin(s.value.timestamp);
-    const v = age !== null && age <= MAX_WEATHER_AGE_MIN ? stationMean(s.value, lo, hi) : null;
+  const weather = (s, name) => {
+    const r = val(s) || { ts: null, v: null };
+    const age = ageMin(r.ts);
+    const v = r.v !== null && age !== null && age <= MAX_WEATHER_AGE_MIN ? r.v : null;
     if (v === null) missing.push(name);
-    return { v, ts: s.value.timestamp };
+    return { v, ts: r.ts };
   };
-  const T = weather(temp, "temp", 15, 45);       // degrees C
-  const H = weather(hum, "humidity", 1, 100);    // percent
-  const W = weather(wind, "wind", 0, 60);        // knots
+  const T = weather(temp, "temp");
+  const H = weather(hum, "humidity");
+  const W = weather(wind, "wind");
 
   // Regions
   const regions = {};
@@ -143,16 +179,41 @@ module.exports = async (req, res) => {
     ages: { pm25: ageMin(out_ts(pmItem)), psi: ageMin(out_ts(psiItem)), temp: ageMin(T.ts), humidity: ageMin(H.ts), wind: ageMin(W.ts) },
   };
 
+  // Fall back to the last good numbers for a group that came back empty this time.
+  const fallback = [];
+  if (out.aqi !== null) {
+    lastAir = { aqi: out.aqi, pm25: out.pm25, psi: out.psi, regions, upd: { pm25: out.updated.pm25, psi: out.updated.psi } };
+  } else if (lastAir && ageMin(lastAir.upd.pm25) <= MAX_AIR_AGE_MIN) {
+    Object.assign(out, { aqi: lastAir.aqi, pm25: lastAir.pm25, psi: lastAir.psi, regions: lastAir.regions });
+    out.updated.pm25 = lastAir.upd.pm25; out.updated.psi = lastAir.upd.psi;
+    out.ages.pm25 = ageMin(lastAir.upd.pm25); out.ages.psi = ageMin(lastAir.upd.psi);
+    fallback.push("air");
+  }
+  if (out.temp !== null) {
+    lastWx = { temp: out.temp, feels: out.feels, humidity: out.humidity, ts: out.updated.weather };
+  } else if (lastWx && ageMin(lastWx.ts) <= MAX_WEATHER_AGE_MIN) {
+    Object.assign(out, { temp: lastWx.temp, feels: lastWx.feels, humidity: lastWx.humidity });
+    out.updated.weather = lastWx.ts;
+    out.ages.temp = ageMin(lastWx.ts);
+    fallback.push("weather");
+  }
+  out.fallback = fallback;
+
   // Everything failed: say so, and do not let this answer be cached.
-  if (!pmItem && !psiItem && T.v === null && H.v === null) {
+  if (out.aqi === null && out.psi === null && out.temp === null && out.humidity === null) {
     res.setHeader("Cache-Control", "no-store");
     return res.status(502).json({ error: "No data from NEA", missing });
   }
-  // Keep a copy for 5 minutes so NEA is not asked on every visit.
-  res.setHeader("Cache-Control", "public, max-age=0, s-maxage=300, stale-while-revalidate=600");
+  // A complete answer is kept for 5 minutes so NEA is not asked on every visit.
+  // An incomplete one is kept for only 15 seconds, so a hiccup is not served to everyone for long.
+  const degraded = missing.some((m) => m !== "wind") || fallback.length > 0;
+  res.setHeader("Cache-Control", degraded
+    ? "public, max-age=0, s-maxage=15"
+    : "public, max-age=0, s-maxage=300, stale-while-revalidate=600");
   res.status(200).json(out);
 };
 
 function out_ts(x) { return x ? x.ts : null; }
 module.exports.toAqi = toAqi;
 module.exports.feelsLike = feelsLike;
+module.exports._reset = () => { lastAir = null; lastWx = null; };
