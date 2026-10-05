@@ -8,7 +8,7 @@
   const btn = $('refresh'), updated = $('updated'), live = $('live'), status = $('status');
   const REFRESH_MS = 10 * 60 * 1000;
   const AIR_STALE_MIN = 120;
-  let lastGood = null, lastFetch = 0, busy = false;
+  let lastGood = null, lastFetch = 0, busy = false, retries = 0, retryTimer = null;
 
   const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
   const int = (v) => (num(v) === null ? null : Math.round(v));
@@ -42,14 +42,32 @@
 
     const notes = [];
     const airAt = d.updated && (d.updated.pm25 || d.updated.psi);
-    const airAge = d.ages && num(d.ages.pm25);
+    const airAge = airAt ? Math.round((Date.now() - Date.parse(airAt)) / 60000) : null;
     if (airAge !== null && airAge > AIR_STALE_MIN) notes.push('The air quality readings are delayed; NEA has not published a newer hour yet.');
     if (num(d.feels) === null && num(d.temp) !== null) notes.push('Feels like is unavailable because humidity readings are missing.');
     if (num(d.temp) === null) notes.push('Temperature is unavailable right now.');
     status.textContent = notes.join(' ');
 
-    if (airAt && airAge !== null && airAge > AIR_STALE_MIN) setNav('Delayed · ' + clock(airAt), 'is-stale');
+    if (num(d.aqi) === null) setNav('Air data unavailable', 'is-stale');
+    else if (airAt && airAge !== null && airAge > AIR_STALE_MIN) setNav('Delayed · ' + clock(airAt), 'is-stale');
     else setNav('Updated ' + clock(airAt || d.updated && d.updated.weather), '');
+  }
+
+  // If this answer is missing air quality or weather but the last good one had it, keep the old
+  // numbers for that part (the time shown stays the old time, so nothing looks fresher than it is).
+  function keepGood(d) {
+    if (!lastGood) return { d, kept: false };
+    const m = Object.assign({}, d, { updated: Object.assign({}, d.updated), regions: d.regions });
+    let kept = false;
+    if (num(d.aqi) === null && num(lastGood.aqi) !== null) {
+      ['aqi', 'pm25', 'psi', 'regions'].forEach((k) => { m[k] = lastGood[k]; });
+      m.updated.pm25 = lastGood.updated.pm25; m.updated.psi = lastGood.updated.psi; kept = true;
+    }
+    if (num(d.temp) === null && num(lastGood.temp) !== null) {
+      ['temp', 'feels', 'humidity'].forEach((k) => { m[k] = lastGood[k]; });
+      m.updated.weather = lastGood.updated.weather; kept = true;
+    }
+    return { d: m, kept };
   }
 
   async function load(manual) {
@@ -62,10 +80,17 @@
     try {
       const res = await fetch('/api/haze', { signal: ctl.signal, cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      const d = await res.json();
+      const fresh = await res.json();
+      const k = keepGood(fresh);
+      const d = k.d;
       lastGood = d;
       lastFetch = Date.now();
       show(d);
+      if (k.kept) status.textContent = (status.textContent + ' Some readings could not be refreshed just now, so the latest good values are shown.').trim();
+      // Something was missing: look again soon (up to 4 times), in case it was a short hiccup
+      clearTimeout(retryTimer);
+      if ((fresh.missing || []).some((x) => x !== 'wind') && retries < 4) { retries++; retryTimer = setTimeout(() => load(false), 45000); }
+      else retries = 0;
     } catch (e) {
       if (lastGood) {
         // keep what we have, say it is old
