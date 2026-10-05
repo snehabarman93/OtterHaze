@@ -33,7 +33,7 @@
       <div class="nav__brand">Haze Watch SG</div>
       <div class="nav__right">
         <span class="nav__meta"><span class="live" id="live"></span><span id="updated">Updated hourly</span></span>
-        <button type="button" class="btn" id="refresh">Refresh</button>
+        <div class="mascot-picker" id="mascotPicker" role="radiogroup" aria-label="Choose your mascot"></div>
       </div>
     </header>
 
@@ -82,12 +82,12 @@
         <div class="panda-shadow"></div>
         <div class="panda">
           <div class="panda__body">
-            <img class="pose pose--good" data-src="assets/panda-good.webp" alt="" data-alt="A happy panda surrounded by bamboo leaves">
-            <img class="pose pose--moderate" data-src="assets/panda-moderate.webp" alt="" data-alt="A slightly worried panda">
-            <img class="pose pose--mask" data-src="assets/panda-unhealthy.webp" alt="" data-alt="A panda wearing a blue face mask">
-            <img class="pose pose--cough" data-src="assets/panda-hazard.webp" alt="" data-alt="A panda coughing in a cloud of smoke">
-            <img class="pose pose--oxygen" data-src="assets/panda-oxygen.webp" alt="" data-alt="A panda breathing through an oxygen mask">
-            <img class="pose pose--passout" data-src="assets/panda-passout.webp" alt="" data-alt="A panda lying flat, passed out">
+            <img class="pose pose--good" alt="">
+            <img class="pose pose--moderate" alt="">
+            <img class="pose pose--mask" alt="">
+            <img class="pose pose--cough" alt="">
+            <img class="pose pose--oxygen" alt="">
+            <img class="pose pose--passout" alt="">
           </div>
           <div class="fx fx--good" aria-hidden="true"><i style="left:8%;top:12%;--d:0s"></i><i style="left:74%;top:14%;--d:.7s"></i><i style="left:10%;top:42%;--d:1.4s"></i><i style="left:88%;top:38%;--d:2.1s"></i><i style="left:48%;top:4%;--d:2.8s"></i></div>
           <div class="fx fx--cough" aria-hidden="true"><i style="left:46%;top:56%;--d:0s"></i><i style="left:52%;top:56%;--d:.8s"></i><i style="left:49%;top:56%;--d:1.6s"></i></div>
@@ -156,6 +156,8 @@
     </section>
 
     <p class="foot">Data from data.gov.sg (NEA): hourly PM2.5, 24-hour PSI, and temperature, humidity and wind from weather stations across the island. Feels like is calculated from these, not published by NEA.</p>
+    <div class="refresh-row"><button type="button" class="btn" id="refresh">Refresh</button></div>
+
     <p class="foot" id="status" role="status"></p>
 
     <footer class="credit">Built by Considered House (Singapore)</footer>

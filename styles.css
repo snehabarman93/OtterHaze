@@ -387,3 +387,37 @@ html[data-temp="hot"] .panda-shadow { filter: blur(10px); }
   .panda__body, .fx b, .fx em, .fx u, .fx s, .fx i { animation: none !important; }
   .fx--cold b, .fx--cold em, .fx--oxygen i, .fx--sweat u, .fx--sweat s { opacity: .6; }
 }
+
+/* ======================================================================
+   Mascot picker + per-mascot face positions
+   ====================================================================== */
+.mascot-picker { display: flex; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid var(--hair); }
+.mascot-picker button { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid transparent; background: transparent; cursor: pointer; }
+.mascot-picker button img { width: 28px; height: 28px; object-fit: cover; object-position: 50% 12%; border-radius: 50%; background: rgba(255, 255, 255, .55); }
+.mascot-picker button[aria-checked="true"] { background: rgba(255, 255, 255, .55); border-color: var(--ink); }
+.mascot-picker button:not([aria-checked="true"]) img { opacity: .75; }
+.mascot-picker button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (max-width: 720px) {
+  .nav { padding: 8px 10px 8px 18px; gap: 8px; }
+  .nav__brand { font-size: 15px; }
+  .nav__right { gap: 8px; min-width: 0; }
+  .nav__meta { gap: 6px; max-width: 72px; line-height: 1.2; min-width: 0; }
+  .mascot-picker { padding: 2px; }
+  .mascot-picker button { width: 30px; height: 30px; }
+  .mascot-picker button img { width: 24px; height: 24px; }
+}
+
+/* Where the face, mask and mouth are on each otter picture (% of the picture box).
+   hx/hy/hrx/hry = oval the sweat beads stay inside; mx/my = mask or mouth (bubbles, breath) */
+html[data-mascot="otter"][data-pose="good"]    { --hx: 51%; --hy: 37%; --hrx: 17%; --hry: 11%; --mx: 53%; --my: 43%; }
+html[data-mascot="otter"][data-pose="moderate"]{ --hx: 55%; --hy: 39%; --hrx: 17%; --hry: 11%; --mx: 56%; --my: 43%; }
+html[data-mascot="otter"][data-pose="mask"]    { --hx: 53%; --hy: 32%; --hrx: 16%; --hry: 7%;  --mx: 52%; --my: 49%; }
+html[data-mascot="otter"][data-pose="cough"]   { --hx: 49%; --hy: 40%; --hrx: 14%; --hry: 9%;  --mx: 49%; --my: 49%; }
+html[data-mascot="otter"][data-pose="oxygen"]  { --hx: 56%; --hy: 30%; --hrx: 15%; --hry: 6%;  --mx: 57%; --my: 47%; }
+html[data-mascot="otter"][data-pose="passout"] { --hx: 30%; --hy: 84%; --hrx: 14%; --hry: 8%;  --mx: 29%; --my: 88%; }
+
+.refresh-row { display: flex; margin-top: -18px; }   /* sits just under the data note */
+.refresh-row .btn { background: var(--glass-bg); }
+
+.live { flex: none; }   /* never squash the status dot into an oval */
+@media (max-width: 350px) { .nav__meta { display: none; } }

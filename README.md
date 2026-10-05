@@ -6,7 +6,7 @@ A plain HTML/CSS/JS version of the chosen design. Open `index.html` to preview; 
 index.html   structure, with data-bind hooks
 styles.css   all visuals, driven by data-state / data-theme / data-pose on <html>
 app.js       band code, render(data), sample data
-assets/      panda-good / moderate / unhealthy (mask) / hazard (coughing) / oxygen / passout .webp, island.webp (relief map)
+assets/      panda-* and otter-* pictures (6 poses each), island.webp (relief map)
 ```
 
 Preview a state: `index.html?demo=good` (or `moderate`, `sensitive`, `unhealthy`, `very`, `hazard`).
@@ -36,6 +36,12 @@ Call it after each fetch (the page already re-renders cleanly on repeat calls). 
 - The function retries a failed request once, ignores an hourly or 5-minute record that is empty or half filled in and uses the newest complete one, and keeps its last good numbers (under 3 hours old) if a request comes back empty.
 - An incomplete answer is cached for 15 seconds only (a complete one for 5 minutes), and the page looks again after 45 seconds, up to 4 times.
 - The page keeps showing the last good values for any part that comes back empty, with a note. If there has never been a good answer, it says "Air data unavailable".
+
+## Mascots
+
+Visitors choose Panda or Otter with the two small icons in the header (top right) (their choice is remembered in their browser; `?mascot=otter` forces one, handy for sharing). Both have the same six poses, and everything else (shaking, breathing, sweat beads, shivering) works for each.
+
+To add another mascot (the merlion): put six transparent 440x440 .webp pictures in `assets/` (good, moderate, mask, cough, oxygen, passout), add an entry to `MASCOTS` in `app.js` (name, label, picture names, alt text), and add one line in `styles.css` per pose under "per-mascot face positions" (`--hx --hy --hrx --hry` = where the sweat beads may sit, `--mx --my` = mouth or mask). The picker builds itself from `MASCOTS`.
 
 ## Haze states
 
