@@ -22,6 +22,7 @@
 
    Preview any state without data:  index.html?demo=good|moderate|sensitive|unhealthy|very|hazard
    Fine-tune the preview:           index.html?demo=good&aqi=180&psi=250&temp=22&feels=24
+   Pick the mascot:                 add &mascot=otter (the visitor's own choice is remembered)
    ========================================================================== */
 
 (function () {
@@ -52,6 +53,26 @@
     very:      { theme: 'dark',  particles: 48, tip: 'Stay indoors where you can, keep windows closed, and avoid exercising outside.' },
     hazard:    { theme: 'dark',  particles: 58, tip: 'Avoid going outside. Keep windows closed and rest indoors.' }
   };
+
+  // ---- Mascots -------------------------------------------------------------
+  // To add another one (the merlion, say): add an entry here and put six pictures in assets/.
+  // `files` maps each pose to a picture name in assets/ (without .webp).
+  const MASCOTS = {
+    panda: {
+      label: 'Panda',
+      files: { good: 'panda-good', moderate: 'panda-moderate', mask: 'panda-unhealthy', cough: 'panda-hazard', oxygen: 'panda-oxygen', passout: 'panda-passout' },
+      alt: { good: 'A happy panda surrounded by bamboo leaves', moderate: 'A slightly worried panda', mask: 'A panda wearing a blue face mask', cough: 'A panda coughing in a cloud of smoke', oxygen: 'A panda breathing through an oxygen mask', passout: 'A panda lying flat, passed out' }
+    },
+    otter: {
+      label: 'Otter',
+      files: { good: 'otter-good', moderate: 'otter-moderate', mask: 'otter-mask', cough: 'otter-cough', oxygen: 'otter-oxygen', passout: 'otter-passout' },
+      alt: { good: 'A happy otter with its paws up', moderate: 'A slightly worried otter', mask: 'An otter wearing a blue face mask', cough: 'An otter coughing in a cloud of smoke', oxygen: 'An otter breathing through an oxygen mask', passout: 'An otter lying flat, passed out' }
+    }
+  };
+  const DEFAULT_MASCOT = 'panda';
+  let mascot = DEFAULT_MASCOT;
+  // Pictures normally come from assets/. (The preview page on claude.ai supplies them inline.)
+  const assetUrl = (f) => (window.HAZE_ASSET_URLS && window.HAZE_ASSET_URLS[f]) || 'assets/' + f + '.webp';
 
   // ---- Which panda to show -------------------------------------------------
   // From mildest to worst. AQI picks the panda; a very high PSI can push it further.
@@ -115,11 +136,56 @@
   const REGIONS = ['north', 'east', 'west', 'south', 'central'];
 
   function showPose(pose) {
-    // Load only the panda being shown (the four images are ~2 MB together)
+    // Load only the picture being shown (all of them together are a few MB)
     $$('.pose').forEach((img) => {
-      if (img.classList.contains('pose--' + pose) && !img.getAttribute('src') && img.dataset.src) {
-        img.src = img.dataset.src;
+      if (img.classList.contains('pose--' + pose) && img.dataset.loaded !== mascot) {
+        img.src = assetUrl(MASCOTS[mascot].files[pose]);
+        img.dataset.loaded = mascot;
       }
+    });
+  }
+  function updateAlt() {
+    const pose = document.documentElement.dataset.pose;
+    $$('.pose').forEach((img) => {
+      img.alt = img.classList.contains('pose--' + pose) ? (MASCOTS[mascot].alt[pose] || '') : '';
+    });
+  }
+
+  // ---- Mascot picker -----------------------------------------------------------
+  function setMascot(name, remember) {
+    if (!MASCOTS[name]) name = DEFAULT_MASCOT;
+    mascot = name;
+    const root = document.documentElement;
+    root.dataset.mascot = name;
+    // forget the pictures of the other mascot, then load the one on screen
+    $$('.pose').forEach((img) => { img.removeAttribute('src'); delete img.dataset.loaded; });
+    if (root.dataset.pose) showPose(root.dataset.pose);
+    updateAlt();
+    $$('#mascotPicker [role="radio"]').forEach((b) => {
+      const on = b.dataset.mascot === name;
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+    });
+    if (remember) { try { localStorage.setItem('hazewatch.mascot', name); } catch (e) { /* private mode: fine */ } }
+  }
+  function buildPicker() {
+    const host = $('#mascotPicker');
+    if (!host) return;
+    Object.keys(MASCOTS).forEach((name) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.setAttribute('role', 'radio'); b.dataset.mascot = name;
+      b.setAttribute('aria-label', MASCOTS[name].label); b.title = MASCOTS[name].label;
+      b.innerHTML = '<img alt="" src="' + assetUrl(MASCOTS[name].files.good) + '">';
+      b.addEventListener('click', () => setMascot(name, true));
+      b.addEventListener('keydown', (e) => {          // arrow keys move between options
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        const names = Object.keys(MASCOTS), i = names.indexOf(mascot);
+        const next = names[(i + (e.key === 'ArrowRight' ? 1 : names.length - 1)) % names.length];
+        setMascot(next, true);
+        $('#mascotPicker [data-mascot="' + next + '"]').focus();
+        e.preventDefault();
+      });
+      host.appendChild(b);
     });
   }
 
@@ -173,7 +239,7 @@
 
     // Panda alt text (only the visible pose is announced)
     $$('.pose').forEach((img) => {
-      img.alt = img.classList.contains('pose--' + root.dataset.pose) ? img.dataset.alt : '';
+      img.alt = img.classList.contains('pose--' + root.dataset.pose) ? (MASCOTS[mascot].alt[root.dataset.pose] || '') : '';
     });
 
     // Regions: pins, zone tints and the phone list
@@ -226,12 +292,17 @@
     hazard:    demo(330, 260, 380, 34, 41)
   };
 
-  window.HazeWatch = { render, DEMO, AQI_BANDS, PSI_BANDS, EMPTY };
+  window.HazeWatch = { render, DEMO, AQI_BANDS, PSI_BANDS, EMPTY, setMascot, MASCOTS };
 
   // ---- Boot ---------------------------------------------------------------
   // ?demo=<state> shows sample data. Otherwise the page starts empty ("Loading")
   // and data.js fills it from /api/haze. Sample data is never shown as live.
   const params = new URLSearchParams(location.search);
+  // Mascot: ?mascot=otter wins, then what the visitor chose last time, then the default
+  let saved = null;
+  try { saved = localStorage.getItem('hazewatch.mascot'); } catch (e) { /* ignore */ }
+  buildPicker();
+  setMascot(MASCOTS[params.get('mascot')] ? params.get('mascot') : MASCOTS[saved] ? saved : DEFAULT_MASCOT, false);
   const demoKey = params.get('demo');
   if (DEMO[demoKey]) {
     // Optional overrides for previewing, e.g. ?demo=good&aqi=180&psi=250&temp=22&feels=24
