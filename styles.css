@@ -419,6 +419,18 @@ html[data-mascot="otter"][data-pose="passout"] { --hx: 30%; --hy: 84%; --hrx: 14
 .sub { flex-wrap: wrap; }
 
 
+/* ---- Effects that aren't showing stay paused ------------------------------ */
+/* Each .fx group fades to opacity 0 when its pose/temperature isn't active, but its
+   children kept animating underneath. Paused animations cost the compositor nothing. */
+/* (html prefix: the effects set `animation:` as a shorthand, which would otherwise reset this.) */
+html .fx *, html .fx *::before, html .fx *::after { animation-play-state: paused; }
+html[data-pose="good"] .fx--good *, html[data-pose="good"] .fx--good *::before, html[data-pose="good"] .fx--good *::after,
+html[data-pose="cough"] .fx--cough *, html[data-pose="cough"] .fx--cough *::before, html[data-pose="cough"] .fx--cough *::after,
+html[data-pose="oxygen"] .fx--oxygen *, html[data-pose="oxygen"] .fx--oxygen *::before, html[data-pose="oxygen"] .fx--oxygen *::after,
+html[data-temp="cold"] .fx--cold *, html[data-temp="cold"] .fx--cold *::before, html[data-temp="cold"] .fx--cold *::after,
+html[data-temp="warm"] .fx--sweat *, html[data-temp="warm"] .fx--sweat *::before, html[data-temp="warm"] .fx--sweat *::after,
+html[data-temp="hot"] .fx--sweat *, html[data-temp="hot"] .fx--sweat *::before, html[data-temp="hot"] .fx--sweat *::after { animation-play-state: running; }
+
 /* ---- Tab hidden: freeze every animation (set by app.js) ------------------- */
 html.is-hidden *, html.is-hidden *::before, html.is-hidden *::after { animation-play-state: paused !important; }
 
