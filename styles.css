@@ -77,8 +77,8 @@ body { margin: 0; }
 /* ---- Glass --------------------------------------------------------------- */
 .glass {
   background-color: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(1.25);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.25);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
   box-shadow: 0 14px 44px var(--glass-shadow), inset 0 1px 0 var(--glass-hi), inset 1px 0 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(255,255,255,.07);
   transition: background-color 1.6s ease, border-color 1.6s ease, box-shadow 1.6s ease;
@@ -157,7 +157,8 @@ body { margin: 0; }
 .pin { position: absolute; width: 0; height: 0; }
 .ping { position: absolute; left: -8px; top: -8px; width: 16px; height: 16px; border-radius: 50%; background: var(--pin); opacity: 0.5; animation: ping 2.8s ease-out infinite; }
 .pin__dot { position: absolute; left: -8px; top: -8px; width: 16px; height: 16px; border-radius: 50%; background: var(--pin); border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
-.pill { position: absolute; left: 0; top: 0; white-space: nowrap; padding: 9px 14px 10px; border-radius: 16px; background-color: var(--pill-bg); border-color: var(--pill-border); font-variant-numeric: tabular-nums; }
+/* Pills sit inside the blurred .isle panel, so they skip their own backdrop blur (a nested blur is the costly kind). */
+.pill { position: absolute; left: 0; top: 0; white-space: nowrap; padding: 9px 14px 10px; border-radius: 16px; background-color: var(--pill-bg); border-color: var(--pill-border); font-variant-numeric: tabular-nums; backdrop-filter: none; -webkit-backdrop-filter: none; }
 .pill__name { font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 .pill__vals { display: flex; gap: 16px; margin-top: 3px; }
 .pill b { font-size: 22px; font-weight: 300; letter-spacing: -0.02em; }
@@ -175,7 +176,11 @@ body { margin: 0; }
 .foot { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
 
 /* ---- Grain --------------------------------------------------------------- */
-.grain { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: overlay; opacity: var(--grain); }
+/* Fixed to the viewport (not the full page height) and tiled from a small image,
+   so the GPU holds one screen-sized layer instead of a page-sized live filter.
+   assets/grain.webp is the old SVG feTurbulence filter (freq 0.8, 2 octaves) baked into a seamless
+   128px tile at 2x (256 texels), so it looks the same; --grain still sets the strength. */
+.grain { position: fixed; inset: 0; pointer-events: none; background: url(assets/grain.webp) 0 0 / 128px 128px repeat; mix-blend-mode: overlay; opacity: var(--grain); }
 
 /* ---- Mobile -------------------------------------------------------------- */
 @media (max-width: 720px) {
