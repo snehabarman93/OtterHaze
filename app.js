@@ -51,14 +51,14 @@
     { max: 1e9, name: 'Hazardous',        c: '--hazard' }
   ];
 
-  // Per state: theme (text/glass colours), copy, particle count
+  // Per state: theme (text/glass colours) and copy
   const STATE = {
-    good:      { theme: 'light', particles: 4,  tip: 'A great day to be outside. Go for that long walk.' },
-    moderate:  { theme: 'light', particles: 14, tip: 'Fine for most people. If haze bothers you, take long outdoor workouts a little easier.' },
-    sensitive: { theme: 'mid',   particles: 28, tip: 'Sensitive groups should cut back on long or strenuous time outdoors. Keep a mask handy.' },
-    unhealthy: { theme: 'dark',  particles: 38, tip: 'Everyone may start to feel it. Keep outdoor time short and wear a well-fitted mask if you go out.' },
-    very:      { theme: 'dark',  particles: 48, tip: 'Stay indoors where you can, keep windows closed, and avoid exercising outside.' },
-    hazard:    { theme: 'dark',  particles: 58, tip: 'Avoid going outside. Keep windows closed and rest indoors.' }
+    good:      { theme: 'light', tip: 'A great day to be outside. Go for that long walk.' },
+    moderate:  { theme: 'light', tip: 'Fine for most people. If haze bothers you, take long outdoor workouts a little easier.' },
+    sensitive: { theme: 'mid',   tip: 'Sensitive groups should cut back on long or strenuous time outdoors. Keep a mask handy.' },
+    unhealthy: { theme: 'dark',  tip: 'Everyone may start to feel it. Keep outdoor time short and wear a well-fitted mask if you go out.' },
+    very:      { theme: 'dark',  tip: 'Stay indoors where you can, keep windows closed, and avoid exercising outside.' },
+    hazard:    { theme: 'dark',  tip: 'Avoid going outside. Keep windows closed and rest indoors.' }
   };
 
   // ---- Mascots -------------------------------------------------------------
@@ -105,26 +105,6 @@
   const key = (b) => b.c.slice(2); // '--good' -> 'good'
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-
-  // ---- Particles: more specks = thicker haze ------------------------------
-  function renderParticles(n, seed = 11) {
-    const host = $('#particles');
-    host.textContent = '';
-    let s = seed;
-    const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
-    for (let i = 0; i < n; i++) {
-      const p = document.createElement('div');
-      const size = Math.round(4 + rnd() * 9);
-      p.className = 'part';
-      p.style.cssText =
-        'left:' + Math.round(rnd() * 100) + '%;top:' + Math.round(rnd() * 100) + '%;' +
-        'width:' + size + 'px;height:' + size + 'px;' +
-        'background:var(' + (i % 2 ? '--part-b' : '--part-a') + ');' +
-        'animation-duration:' + Math.round(14 + rnd() * 20) + 's;' +
-        'animation-delay:-' + Math.round(rnd() * 30) + 's;';
-      host.appendChild(p);
-    }
-  }
 
   function setText(name, value) {
     $$('[data-bind="' + name + '"]').forEach((el) => { el.textContent = value; });
@@ -215,7 +195,6 @@
       root.dataset.pose = pose;
       setText('aqiBand', aqiBand.name);
       setText('tip', st.tip);
-      renderParticles(st.particles);
       showPose(pose);
     } else {
       // No AQI: keep whatever look is on screen, say why

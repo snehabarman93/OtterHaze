@@ -47,12 +47,12 @@
 }
 
 /* ---- State: background scene -------------------------------------------- */
-[data-state="good"]      { --bg: #EEF4EC; --wash: #CFE6C4; --wash2: #F3EDC4; --haze-c: #DDE8DD; --haze: 0.08; --sun-c: #FFF3C4; --sun: 1;    --halo: 0.3;  --band-size: 120px; --part-a: #8A7A66; --part-b: #B08A5E; }
-[data-state="moderate"]  { --bg: #DAD9D2; --wash: #E9DDB4; --wash2: #CBD6C0; --haze-c: #CBC9C0; --haze: 0.3;  --sun-c: #FFEBB0; --sun: 0.7;  --halo: 0.3;  --band-size: 120px; --part-a: #8A7A66; --part-b: #B08A5E; }
-[data-state="sensitive"] { --bg: #A3A19C; --wash: #C0A98E; --wash2: #8F9A93; --haze-c: #B5B1A8; --haze: 0.45; --sun-c: #FFD9A0; --sun: 0.3;  --halo: 0.35; --band-size: 84px;  --part-a: #5C5648; --part-b: #7A6A52; }
-[data-state="unhealthy"] { --bg: #5A5957; --wash: #7A6A66; --wash2: #4A4D50; --haze-c: #6E6C69; --haze: 0.55; --sun-c: #F5B98A; --sun: 0.15; --halo: 0.5;  --band-size: 92px;  --part-a: #D8D2C8; --part-b: #B9B2A6; }
-[data-state="very"]      { --bg: #3B393B; --wash: #5A4560; --wash2: #343840; --haze-c: #4A484B; --haze: 0.58; --sun-c: #E8A08A; --sun: 0.1;  --halo: 0.55; --band-size: 92px;  --part-a: #D8D2C8; --part-b: #B9B2A6; }
-[data-state="hazard"]    { --bg: #1E1C1F; --wash: #4A2F3A; --wash2: #2E3036; --haze-c: #2E2E31; --haze: 0.65; --sun-c: #D98A7A; --sun: 0.06; --halo: 0.6;  --band-size: 108px; --part-a: #D8D2C8; --part-b: #B9B2A6; }
+[data-state="good"]      { --bg: #EEF4EC; --wash: #CFE6C4; --wash2: #F3EDC4; --haze-c: #DDE8DD; --haze: 0.08; --sun-c: #FFF3C4; --sun: 1;    --halo: 0.3;  --band-size: 120px; }
+[data-state="moderate"]  { --bg: #DAD9D2; --wash: #E9DDB4; --wash2: #CBD6C0; --haze-c: #CBC9C0; --haze: 0.3;  --sun-c: #FFEBB0; --sun: 0.7;  --halo: 0.3;  --band-size: 120px; }
+[data-state="sensitive"] { --bg: #A3A19C; --wash: #C0A98E; --wash2: #8F9A93; --haze-c: #B5B1A8; --haze: 0.45; --sun-c: #FFD9A0; --sun: 0.3;  --halo: 0.35; --band-size: 84px; }
+[data-state="unhealthy"] { --bg: #5A5957; --wash: #7A6A66; --wash2: #4A4D50; --haze-c: #6E6C69; --haze: 0.55; --sun-c: #F5B98A; --sun: 0.15; --halo: 0.5;  --band-size: 92px; }
+[data-state="very"]      { --bg: #3B393B; --wash: #5A4560; --wash2: #343840; --haze-c: #4A484B; --haze: 0.58; --sun-c: #E8A08A; --sun: 0.1;  --halo: 0.55; --band-size: 92px; }
+[data-state="hazard"]    { --bg: #1E1C1F; --wash: #4A2F3A; --wash2: #2E3036; --haze-c: #2E2E31; --haze: 0.65; --sun-c: #D98A7A; --sun: 0.06; --halo: 0.6;  --band-size: 108px; }
 
 /* ---- Base --------------------------------------------------------------- */
 * { box-sizing: border-box; }
@@ -66,9 +66,7 @@ body { margin: 0; }
 /* ---- Animated background ------------------------------------------------- */
 .bg { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .sun { position: absolute; border-radius: 50%; transition: background-color 1.6s ease, opacity 1.6s ease, box-shadow 1.6s ease; top: 70px; right: 14%; width: 96px; height: 96px; filter: blur(6px); background: var(--sun-c); box-shadow: 0 0 80px 26px var(--sun-c); opacity: var(--sun); }
-.part { position: absolute; border-radius: 50%; opacity: 0; animation: float ease-in-out infinite; }
 
-@keyframes float { 0% { transform: translate(0, 0); opacity: 0; } 15% { opacity: 0.5; } 85% { opacity: 0.5; } 100% { transform: translate(46px, -180px); opacity: 0; } }
 @keyframes ping { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(3); opacity: 0; } }
 
 /* ---- Layout -------------------------------------------------------------- */
@@ -214,8 +212,7 @@ body { margin: 0; }
 
 /* ---- Reduced motion ------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
-  .part, .ping, .live { animation: none; }
-  .part { opacity: 0.35; }
+  .ping, .live { animation: none; }
   .stage, .sun, .glass, .halo, .pose { transition: none; }
 }
 
