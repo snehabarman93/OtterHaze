@@ -176,9 +176,11 @@ body { margin: 0; }
 .foot { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
 
 /* ---- Grain --------------------------------------------------------------- */
-/* Fixed to the viewport (not the full page height) and tiled from a 256px image,
-   so the GPU holds one screen-sized layer instead of a page-sized live filter. */
-.grain { position: fixed; inset: 0; pointer-events: none; background: url(assets/grain.webp) 0 0 / 256px 256px repeat; mix-blend-mode: overlay; opacity: var(--grain); }
+/* Fixed to the viewport (not the full page height) and tiled from a small image,
+   so the GPU holds one screen-sized layer instead of a page-sized live filter.
+   assets/grain.webp is the old SVG feTurbulence filter (freq 0.8, 2 octaves) baked into a seamless
+   128px tile at 2x (256 texels), so it looks the same; --grain still sets the strength. */
+.grain { position: fixed; inset: 0; pointer-events: none; background: url(assets/grain.webp) 0 0 / 128px 128px repeat; mix-blend-mode: overlay; opacity: var(--grain); }
 
 /* ---- Mobile -------------------------------------------------------------- */
 @media (max-width: 720px) {
