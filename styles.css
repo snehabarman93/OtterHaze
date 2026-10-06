@@ -9,7 +9,6 @@
 :root {
   --font: 'Hanken Grotesk', system-ui, sans-serif;
   --grain: 0.4;               /* film grain strength, 0 to 1 */
-  --glass-blur: 12px;
 }
 
 /* ---- Theme: text + glass colours ---------------------------------------- */
@@ -73,10 +72,12 @@ body { margin: 0; }
 .page { position: relative; max-width: 1120px; margin: 0 auto; padding: 24px 32px 80px; display: flex; flex-direction: column; gap: 56px; }
 
 /* ---- Glass --------------------------------------------------------------- */
+/* No backdrop-filter on purpose: the panels sit over a flat background, so the blur showed nothing
+   (pixel diff: under 0.15/255 on average), but Chrome re-blurred a panel every frame that anything
+   moved inside it (the pulsing dots in the nav and on the map). That one cost made a single 8px dot
+   as expensive as the whole page. */
 .glass {
   background-color: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
   box-shadow: 0 14px 44px var(--glass-shadow), inset 0 1px 0 var(--glass-hi), inset 1px 0 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(255,255,255,.07);
   transition: background-color 1.6s ease, border-color 1.6s ease, box-shadow 1.6s ease;
@@ -155,8 +156,7 @@ body { margin: 0; }
 .pin { position: absolute; width: 0; height: 0; }
 .ping { position: absolute; left: -8px; top: -8px; width: 16px; height: 16px; border-radius: 50%; background: var(--pin); opacity: 0.5; animation: ping 2.8s ease-out infinite; }
 .pin__dot { position: absolute; left: -8px; top: -8px; width: 16px; height: 16px; border-radius: 50%; background: var(--pin); border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
-/* Pills sit inside the blurred .isle panel, so they skip their own backdrop blur (a nested blur is the costly kind). */
-.pill { position: absolute; left: 0; top: 0; white-space: nowrap; padding: 9px 14px 10px; border-radius: 16px; background-color: var(--pill-bg); border-color: var(--pill-border); font-variant-numeric: tabular-nums; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.pill { position: absolute; left: 0; top: 0; white-space: nowrap; padding: 9px 14px 10px; border-radius: 16px; background-color: var(--pill-bg); border-color: var(--pill-border); font-variant-numeric: tabular-nums; }
 .pill__name { font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 .pill__vals { display: flex; gap: 16px; margin-top: 3px; }
 .pill b { font-size: 22px; font-weight: 300; letter-spacing: -0.02em; }
@@ -246,7 +246,6 @@ html[data-state="good"] .panda { animation-name: bob; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @media (prefers-reduced-motion: reduce) { .panda { animation: none; } }
 
-@media (max-width: 720px) { :root { --glass-blur: 8px; } }
 
 /* ---- Panda extras: small movements per pose (all in code) ---- */
 .fx { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .6s ease; }

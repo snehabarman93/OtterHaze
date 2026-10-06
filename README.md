@@ -61,7 +61,7 @@ All per-state colours live as CSS variables under `[data-state="..."]` in `style
 ## Design tokens
 
 - Font: Hanken Grotesk, weights 200 to 500 (loaded from Google Fonts in `index.html`).
-- Glass: 10% white fill, 12px backdrop blur, 1px light border (`--glass-bg`, `--glass-blur`).
+- Glass: 10% white fill and 1px light border (`--glass-bg`). No backdrop blur: it was invisible over the flat background and cost GPU time in Chrome.
 - Grain: `--grain: 0.7` at the top of `styles.css` (tiled noise image `assets/grain.webp`, overlay blend).
 - Headline word: weight 200, size per state (`--band-size`), 60px on phones.
 - Band colours: `--c-good … --c-hazard`, with lighter variants on the dark theme.
