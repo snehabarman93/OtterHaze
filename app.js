@@ -22,7 +22,7 @@
 
    Preview any state without data:  index.html?demo=good|moderate|sensitive|unhealthy|very|hazard
    Fine-tune the preview:           index.html?demo=good&aqi=180&psi=250&temp=22&feels=24
-   Pick the mascot:                 add &mascot=otter (the visitor's own choice is remembered)
+   Pick the mascot:                 add &mascot=panda|otter (a visitor's own choice is remembered)
    ========================================================================== */
 
 (function () {
@@ -35,6 +35,13 @@
     { max: 200, name: 'Unhealthy',        c: '--unhealthy' },
     { max: 300, name: 'Very unhealthy',   c: '--very' },
     { max: 1e9, name: 'Hazardous',        c: '--hazard' }
+  ];
+  // NEA's bands for the 1-hour PM2.5 reading (ug/m3): Band 1 Normal, 2 Elevated, 3 High, 4 Very High
+  const PM25_BANDS = [
+    { max: 55,  name: 'Normal',    n: 1, c: '--good' },
+    { max: 150, name: 'Elevated',  n: 2, c: '--moderate' },
+    { max: 250, name: 'High',      n: 3, c: '--unhealthy' },
+    { max: 1e9, name: 'Very high', n: 4, c: '--very' }
   ];
   const PSI_BANDS = [
     { max: 50,  name: 'Good',             c: '--good' },
@@ -69,7 +76,7 @@
       alt: { good: 'A happy otter with its paws up', moderate: 'A slightly worried otter', mask: 'An otter wearing a blue face mask', cough: 'An otter coughing in a cloud of smoke', oxygen: 'An otter breathing through an oxygen mask', passout: 'An otter lying flat, passed out' }
     }
   };
-  const DEFAULT_MASCOT = 'panda';
+  const DEFAULT_MASCOT = 'panda';   // what a visitor sees until they pick another one
   let mascot = DEFAULT_MASCOT;
   // Pictures normally come from assets/. (The preview page on claude.ai supplies them inline.)
   const assetUrl = (f) => (window.HAZE_ASSET_URLS && window.HAZE_ASSET_URLS[f]) || 'assets/' + f + '.webp';
@@ -197,12 +204,13 @@
 
     const aqiBand = has(data.aqi) ? bandOf(AQI_BANDS, data.aqi) : null;
     const psiBand = has(data.psi) ? bandOf(PSI_BANDS, data.psi) : null;
+    const pmBand = has(data.pm25) ? bandOf(PM25_BANDS, data.pm25) : null;
 
     if (aqiBand) {
       const stateKey = key(aqiBand);
       const st = STATE[stateKey];
       root.dataset.state = stateKey;
-      root.dataset.theme = st.theme;
+      root.dataset.tone = st.theme;
       const pose = poseFor(data.aqi, data.psi);
       root.dataset.pose = pose;
       setText('aqiBand', aqiBand.name);
@@ -225,6 +233,7 @@
     setText('temp', deg(data.temp));
     setText('feels', deg(data.feels));
     setText('psiBand', psiBand ? psiBand.name : '\u2013');
+    setText('pm25Band', pmBand ? pmBand.name : '\u2013');
     setText('tempNote', opts.tempNote || (has(data.temp) ? 'Right now' : 'Unavailable'));
 
     if (has(data.feels) && has(data.temp)) {
@@ -235,6 +244,7 @@
     }
 
     $$('[data-band-for="aqi"]').forEach((el) => { aqiBand ? (el.dataset.band = key(aqiBand)) : delete el.dataset.band; });
+    $$('[data-band-for="pm25"]').forEach((el) => { pmBand ? (el.dataset.band = key(pmBand)) : delete el.dataset.band; });
     $$('[data-band-for="psi"]').forEach((el) => { psiBand ? (el.dataset.band = key(psiBand)) : delete el.dataset.band; });
 
     // Panda alt text (only the visible pose is announced)
@@ -265,7 +275,7 @@
       n.appendChild(dot);
       n.appendChild(document.createTextNode(name));
       li.appendChild(n);
-      [['AQI', r.aqi], ['PM2.5', r.pm25], ['PSI', r.psi]].forEach((s) => {
+      [['AQI', r.aqi], ['PM 2.5', r.pm25], ['PSI', r.psi]].forEach((s) => {
         const d = document.createElement('div');
         d.className = 's';
         d.innerHTML = '<b>' + dash(s[1]) + '</b><small>' + s[0] + '</small>';
@@ -292,7 +302,12 @@
     hazard:    demo(330, 260, 380, 34, 41)
   };
 
-  window.HazeWatch = { render, DEMO, AQI_BANDS, PSI_BANDS, EMPTY, setMascot, MASCOTS };
+  window.HazeWatch = { render, DEMO, AQI_BANDS, PSI_BANDS, PM25_BANDS, EMPTY, setMascot, MASCOTS };
+
+  // ---- Pause the animations while the tab is not visible -------------------
+  const syncHidden = () => document.documentElement.classList.toggle('is-hidden', document.hidden);
+  document.addEventListener('visibilitychange', syncHidden);
+  syncHidden();
 
   // ---- Boot ---------------------------------------------------------------
   // ?demo=<state> shows sample data. Otherwise the page starts empty ("Loading")

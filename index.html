@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en" data-state="moderate" data-theme="light" data-pose="moderate">
+<html lang="en" data-state="moderate" data-tone="light" data-pose="moderate">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Haze Watch SG</title>
-<meta name="description" content="Live air quality (AQI, PM2.5, PSI), temperature and feels-like for Singapore, from NEA data.">
+<meta name="description" content="Live air quality (AQI, 1 hr PM 2.5, PSI), temperature and feels-like for Singapore, from NEA data.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@200;300;400;500;700&amp;display=swap">
@@ -18,12 +18,7 @@
 
   <!-- Animated background: reacts to the haze state -->
   <div class="bg" aria-hidden="true">
-    <div class="wash wash--a"></div>
-    <div class="wash wash--b"></div>
     <div class="sun"></div>
-    <div class="haze haze--a"></div>
-    <div class="haze haze--b"></div>
-    <div class="haze haze--c"></div>
     <div id="particles"></div>
   </div>
 
@@ -51,9 +46,9 @@
               <div class="sub"><span class="dot" data-band-for="aqi"></span><span data-bind="aqiBand">Moderate</span></div>
             </div>
             <div class="col">
-              <div class="label">PM2.5</div>
+              <div class="label">1 hr PM 2.5 <span class="unit">(µg/m³)</span></div>
               <div class="num" data-bind="pm25">24</div>
-              <div class="sub">µg/m³ · hourly</div>
+              <div class="sub"><span class="dot" data-band-for="pm25"></span><span data-bind="pm25Band">Normal</span></div>
             </div>
             <div class="col">
               <div class="label">PSI 24-hour</div>
@@ -104,7 +99,7 @@
       <div class="isle__head">
         <div>
           <h2>Island view</h2>
-          <p class="isle__sub">AQI, PM2.5 (µg/m³) and 24-hour PSI by region. Colours show AQI.</p>
+          <p class="isle__sub">AQI, 1 hr PM 2.5 (µg/m³) and 24-hour PSI by region. Colours show AQI.</p>
         </div>
         <ul class="legend" aria-label="AQI bands">
           <li><span class="dot" data-band="good"></span>Good</li>
@@ -131,23 +126,23 @@
 
         <div class="pin pin--north" data-region="north" style="left:43.12%;top:21.55%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">North</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">North</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--east" data-region="east" style="left:64.59%;top:39.38%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">East</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">East</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--west" data-region="west" style="left:23.71%;top:39.38%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">West</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">West</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--south" data-region="south" style="left:48.98%;top:61.09%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">South</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">South</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--central" data-region="central" style="left:47.02%;top:47.91%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">Central</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">Central</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
       </div>
 
@@ -155,7 +150,7 @@
       <ul class="pinlist" id="pinlist"></ul>
     </section>
 
-    <p class="foot">Data from data.gov.sg (NEA): hourly PM2.5, 24-hour PSI, and temperature, humidity and wind from weather stations across the island. Feels like is calculated from these, not published by NEA.</p>
+    <p class="foot">Data from data.gov.sg (NEA): 1-hour PM 2.5, 24-hour PSI, and temperature, humidity and wind from weather stations across the island. Feels like is calculated from these, not published by NEA.</p>
     <div class="refresh-row"><button type="button" class="btn" id="refresh">Refresh</button></div>
 
     <p class="foot" id="status" role="status"></p>
