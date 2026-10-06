@@ -419,3 +419,6 @@ html[data-mascot="otter"][data-pose="passout"] { --hx: 30%; --hy: 84%; --hrx: 14
 
 /* ---- Tab hidden: freeze every animation (set by app.js) ------------------- */
 html.is-hidden *, html.is-hidden *::before, html.is-hidden *::after { animation-play-state: paused !important; }
+
+.num__unit { font-size: 13px; font-weight: 400; letter-spacing: 0; margin-left: 5px; opacity: .7; white-space: nowrap; }
+@media (max-width: 720px) { .num__unit { font-size: 10px; margin-left: 3px; } }
