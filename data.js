@@ -1,13 +1,14 @@
 /* Haze Watch SG: data.js
    Fetches live readings from /api/haze (see api/haze.js) and hands them to
-   HazeWatch.render(). Skipped when the URL has ?demo=<state>. */
+   HazeWatch.render(). Skipped when the URL has a valid ?demo=<state> (an unknown one loads live data). */
 (function () {
-  if (new URLSearchParams(location.search).get('demo')) return;
+  if (HazeWatch.DEMO[new URLSearchParams(location.search).get('demo')]) return;
 
   const $ = (id) => document.getElementById(id);
   const btn = $('refresh'), updated = $('updated'), live = $('live'), status = $('status');
   const REFRESH_MS = 10 * 60 * 1000;
-  const AIR_STALE_MIN = 120;
+  const AIR_STALE_MIN = 120;      // air data older than this shows "Delayed" (the server gives up on it at 180, see api/haze.js)
+  const RETRY_MS = 45 * 1000, MAX_RETRIES = 4; // after a hiccup, look again soon, a few times
   let lastGood = null, lastFetch = 0, busy = false, retries = 0, retryTimer = null;
 
   const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
@@ -43,31 +44,54 @@
     const notes = [];
     const airAt = d.updated && (d.updated.pm25 || d.updated.psi);
     const airAge = airAt ? Math.round((Date.now() - Date.parse(airAt)) / 60000) : null;
+    // `old` = parts the server (or this page) could not refresh, so older readings are shown
+    const old = d.old || [];
+    const airOld = old.includes('pm25') || old.includes('psi');
     if (airAge !== null && airAge > AIR_STALE_MIN) notes.push('The air quality readings are delayed; NEA has not published a newer hour yet.');
+    else if (airOld) notes.push('Some air quality readings could not be refreshed just now, so the latest good ones (from ' + clock(airAt) + ') are shown.');
+    if (old.includes('weather') && num(d.temp) !== null) notes.push('Temperature could not be refreshed just now, so the latest good reading is shown.');
     if (num(d.feels) === null && num(d.temp) !== null) notes.push('Feels like is unavailable because humidity readings are missing.');
     if (num(d.temp) === null) notes.push('Temperature is unavailable right now.');
     status.textContent = notes.join(' ');
 
+    const at = clock(airAt || (d.updated && d.updated.weather));
     if (num(d.aqi) === null) setNav('Air data unavailable', 'is-stale');
-    else if (airAt && airAge !== null && airAge > AIR_STALE_MIN) setNav('Delayed · ' + clock(airAt), 'is-stale');
-    else setNav('Updated ' + clock(airAt || d.updated && d.updated.weather), '');
+    else if ((airAge !== null && airAge > AIR_STALE_MIN) || airOld) setNav('Delayed · ' + clock(airAt), 'is-stale');
+    else setNav(at ? 'Updated ' + at : 'Updated', '');
   }
 
-  // If this answer is missing air quality or weather but the last good one had it, keep the old
-  // numbers for that part (the time shown stays the old time, so nothing looks fresher than it is).
+  // If part of this answer is missing but the last good one had it, keep the old numbers for that
+  // part. The time shown stays the old time, and the part is listed in `old`, so nothing looks
+  // fresher than it is. PM2.5 (with AQI), PSI and weather are separate feeds, so each is kept on its own.
+  const PARTS = {
+    pm25:    { has: (x) => num(x.aqi) !== null, fields: ['aqi', 'pm25'], region: ['aqi', 'pm25'], time: 'pm25' },
+    psi:     { has: (x) => num(x.psi) !== null, fields: ['psi'], region: ['psi'], time: 'psi' },
+    weather: { has: (x) => num(x.temp) !== null, fields: ['temp', 'feels', 'humidity'], region: [], time: 'weather' }
+  };
   function keepGood(d) {
-    if (!lastGood) return { d, kept: false };
-    const m = Object.assign({}, d, { updated: Object.assign({}, d.updated), regions: d.regions });
-    let kept = false;
-    if (num(d.aqi) === null && num(lastGood.aqi) !== null) {
-      ['aqi', 'pm25', 'psi', 'regions'].forEach((k) => { m[k] = lastGood[k]; });
-      m.updated.pm25 = lastGood.updated.pm25; m.updated.psi = lastGood.updated.psi; kept = true;
+    const m = Object.assign({}, d, { updated: Object.assign({}, d.updated), regions: {} });
+    Object.keys(d.regions || {}).forEach((r) => { m.regions[r] = Object.assign({}, d.regions[r]); });
+    const old = (d.fallback || []).slice(); // parts the server already filled from its own last good answer
+    if (lastGood) {
+      Object.keys(PARTS).forEach((name) => {
+        const p = PARTS[name];
+        if (p.has(d) || !p.has(lastGood)) return;
+        p.fields.forEach((f) => { m[f] = lastGood[f]; });
+        Object.keys(lastGood.regions || {}).forEach((r) => {
+          m.regions[r] = m.regions[r] || {};
+          p.region.forEach((f) => { m.regions[r][f] = lastGood.regions[r][f]; });
+        });
+        m.updated[p.time] = lastGood.updated ? lastGood.updated[p.time] : null;
+        if (!old.includes(name)) old.push(name);
+      });
     }
-    if (num(d.temp) === null && num(lastGood.temp) !== null) {
-      ['temp', 'feels', 'humidity'].forEach((k) => { m[k] = lastGood[k]; });
-      m.updated.weather = lastGood.updated.weather; kept = true;
-    }
-    return { d: m, kept };
+    m.old = old;
+    return m;
+  }
+
+  function scheduleRetry() {
+    clearTimeout(retryTimer);
+    if (retries < MAX_RETRIES) { retries++; retryTimer = setTimeout(() => load(false), RETRY_MS); }
   }
 
   async function load(manual) {
@@ -81,21 +105,18 @@
       const res = await fetch('/api/haze', { signal: ctl.signal, cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const fresh = await res.json();
-      const k = keepGood(fresh);
-      const d = k.d;
+      const d = keepGood(fresh);
       lastGood = d;
       lastFetch = Date.now();
       show(d);
-      if (k.kept) status.textContent = (status.textContent + ' Some readings could not be refreshed just now, so the latest good values are shown.').trim();
-      // Something was missing: look again soon (up to 4 times), in case it was a short hiccup
-      clearTimeout(retryTimer);
-      if ((fresh.missing || []).some((x) => x !== 'wind') && retries < 4) { retries++; retryTimer = setTimeout(() => load(false), 45000); }
-      else retries = 0;
+      // Something was missing or old: look again soon, in case it was a short hiccup
+      if ((fresh.missing || []).some((x) => x !== 'wind') || d.old.length) scheduleRetry();
+      else { clearTimeout(retryTimer); retries = 0; }
     } catch (e) {
       if (lastGood) {
         // keep what we have, say it is old
-        const at = lastGood.updated && (lastGood.updated.pm25 || lastGood.updated.weather);
-        setNav('Offline · last ' + clock(at), 'is-off');
+        const at = clock(lastGood.updated && (lastGood.updated.pm25 || lastGood.updated.weather));
+        setNav(at ? 'Offline · last ' + at : 'Offline', 'is-off');
         status.textContent = 'Could not refresh just now, so these are the last readings we got.';
       } else {
         HazeWatch.render(HazeWatch.EMPTY, {
@@ -103,9 +124,10 @@
           tip: 'We could not reach the data service. Please try again in a moment.',
           error: true
         });
-        setNav('Offline', 'is-off');
-        status.textContent = 'Could not load readings from data.gov.sg.';
+        setNav('Air data unavailable', 'is-off');
+        status.textContent = 'Could not load readings from data.gov.sg. Trying again shortly.';
       }
+      scheduleRetry(); // a failed request also gets the quick retries, not just the 10-minute refresh
     } finally {
       clearTimeout(timer);
       busy = false;

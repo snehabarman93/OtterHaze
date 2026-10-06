@@ -36,12 +36,13 @@
     { max: 300, name: 'Very unhealthy',   c: '--very' },
     { max: 1e9, name: 'Hazardous',        c: '--hazard' }
   ];
-  // NEA's bands for the 1-hour PM2.5 reading (ug/m3): Band 1 Normal, 2 Elevated, 3 High, 4 Very High
+  // NEA's bands for the 1-hour PM2.5 reading (ug/m3), in order Band 1 to 4. Only the name is shown.
+  // Readings arrive as whole numbers (data.js rounds them), so 55 is Normal and 56 is Elevated.
   const PM25_BANDS = [
-    { max: 55,  name: 'Normal',    n: 1, c: '--good' },
-    { max: 150, name: 'Elevated',  n: 2, c: '--moderate' },
-    { max: 250, name: 'High',      n: 3, c: '--unhealthy' },
-    { max: 1e9, name: 'Very high', n: 4, c: '--very' }
+    { max: 55,  name: 'Normal',    c: '--good' },
+    { max: 150, name: 'Elevated',  c: '--moderate' },
+    { max: 250, name: 'High',      c: '--unhealthy' },
+    { max: 1e9, name: 'Very High', c: '--very' }
   ];
   const PSI_BANDS = [
     { max: 50,  name: 'Good',             c: '--good' },
@@ -62,8 +63,9 @@
   };
 
   // ---- Mascots -------------------------------------------------------------
-  // To add another one (the merlion, say): add an entry here and put six pictures in assets/.
-  // `files` maps each pose to a picture name in assets/ (without .webp).
+  // To add another one: add an entry here and put six pictures in assets/.
+  // `files` maps each pose to a picture name in assets/ (without .webp). The names are free:
+  // the panda's mask and cough pictures are called panda-unhealthy and panda-hazard, for example.
   const MASCOTS = {
     panda: {
       label: 'Panda',
@@ -181,6 +183,7 @@
     opts = opts || {};
     const root = document.documentElement;
     const regionsIn = data.regions || {};
+    const loading = opts.bandword === 'Loading'; // while loading, regions show dashes, not "No data"
 
     const aqiBand = has(data.aqi) ? bandOf(AQI_BANDS, data.aqi) : null;
     const psiBand = has(data.psi) ? bandOf(PSI_BANDS, data.psi) : null;
@@ -226,10 +229,7 @@
     $$('[data-band-for="pm25"]').forEach((el) => { pmBand ? (el.dataset.band = key(pmBand)) : delete el.dataset.band; });
     $$('[data-band-for="psi"]').forEach((el) => { psiBand ? (el.dataset.band = key(psiBand)) : delete el.dataset.band; });
 
-    // Panda alt text (only the visible pose is announced)
-    $$('.pose').forEach((img) => {
-      img.alt = img.classList.contains('pose--' + root.dataset.pose) ? (MASCOTS[mascot].alt[root.dataset.pose] || '') : '';
-    });
+    updateAlt(); // only the visible pose is announced
 
     // Regions: pins, zone tints and the phone list
     const list = $('#pinlist');
@@ -244,6 +244,9 @@
       $('[data-r="aqi"]', pin).textContent = dash(r.aqi);
       $('[data-r="pm25"]', pin).textContent = dash(r.pm25);
       $('[data-r="psi"]', pin).textContent = dash(r.psi);
+      // A region with no readings at all says so, instead of three dashes
+      const none = !has(r.aqi) && !has(r.pm25) && !has(r.psi) && !loading;
+      pin.classList.toggle('is-nodata', none);
 
       const li = document.createElement('li');
       const n = document.createElement('div');
@@ -254,6 +257,14 @@
       n.appendChild(dot);
       n.appendChild(document.createTextNode(name));
       li.appendChild(n);
+      if (none) {
+        const d = document.createElement('div');
+        d.className = 's s--nodata';
+        d.textContent = 'No data';
+        li.appendChild(d);
+        list.appendChild(li);
+        return;
+      }
       [['AQI', r.aqi], ['PM 2.5', r.pm25], ['PSI', r.psi]].forEach((s) => {
         const d = document.createElement('div');
         d.className = 's';
