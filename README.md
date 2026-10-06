@@ -5,8 +5,11 @@ A plain HTML/CSS/JS version of the chosen design. Open `index.html` to preview; 
 ```
 index.html   structure, with data-bind hooks
 styles.css   all visuals, driven by data-state / data-tone / data-pose on <html>
-app.js       band code, render(data), sample data
-assets/      panda-* and otter-* pictures (6 poses each), island.webp (relief map)
+app.js       band code, render(data), sample data, mascot picker
+data.js      fetches /api/haze, keeps last good values, retries, fills the page
+api/haze.js  Vercel server function: reads NEA's open data and does the sums
+test.html    tester page with sliders (sample data only, not linked from the site)
+assets/      panda-* and otter-* pictures (6 poses each), grain.webp, island.webp (relief map)
 ```
 
 Preview a state: `index.html?demo=good` (or `moderate`, `sensitive`, `unhealthy`, `very`, `hazard`).
@@ -29,19 +32,19 @@ HazeWatch.render({
 });
 ```
 
-Call it after each fetch (the page already re-renders cleanly on repeat calls). To skip the sample on first paint, set `window.HAZE_INITIAL_DATA = {...}` before `app.js` loads. The Refresh button (`#refresh`) has no handler yet; attach your fetch to it.
+Call it after each fetch (the page already re-renders cleanly on repeat calls). `data.js` does this for the live site, and also wires up the Refresh button (`#refresh`). To show data on first paint, set `window.HAZE_INITIAL_DATA = {...}` before `app.js` loads. Until then the page shows "Loading" and dashes (never sample numbers).
 
 ## When NEA hiccups
 
-- The function retries a failed request once, ignores an hourly or 5-minute record that is empty or half filled in and uses the newest complete one, and keeps its last good numbers (under 3 hours old) if a request comes back empty.
-- An incomplete answer is cached for 15 seconds only (a complete one for 5 minutes), and the page looks again after 45 seconds, up to 4 times.
-- The page keeps showing the last good values for any part that comes back empty, with a note. If there has never been a good answer, it says "Air data unavailable".
+- The function retries a failed request once, ignores an hourly or 5-minute record that is empty or half filled in and uses the newest complete one, and keeps its last good numbers (under 3 hours old) if a request comes back empty. PM2.5 and PSI fall back separately, and the answer lists what was filled in this way in `fallback`.
+- An incomplete answer is cached for 15 seconds only (a complete one for 5 minutes), and the page looks again after 45 seconds, up to 4 times. A failed request (error or no connection) gets the same quick retries.
+- The page keeps showing the last good values for any part that comes back empty (PM2.5, PSI or weather, each on its own), with a note and "Delayed" in the top bar. If there has never been a good answer, it says "Air data unavailable".
 
 ## Mascots
 
-**Everyone sees the Panda by default.** Visitors can switch to the Otter with the two small icons in the header (top right); that choice is remembered in their browser and only saved when they click (`?mascot=otter` forces one, handy for sharing). All have the same six poses, and everything else (shaking, breathing, sweat beads, shivering) works for each.
+**Everyone sees the Panda by default.** Visitors can switch to the Otter with the two small icons in the header (top right); that choice is remembered in their browser and only saved when they pick one (click, or arrow keys on the icons); `?mascot=otter` forces one, handy for sharing. All have the same six poses, and everything else (shaking, breathing, sweat beads, shivering) works for each.
 
-To add another mascot (the merlion): put six transparent 440x440 .webp pictures in `assets/` (good, moderate, mask, cough, oxygen, passout), add an entry to `MASCOTS` in `app.js` (name, label, picture names, alt text), and add one line in `styles.css` per pose under "per-mascot face positions" (`--hx --hy --hrx --hry` = where the sweat beads may sit, `--mx --my` = mouth or mask). The picker builds itself from `MASCOTS`.
+To add another mascot: put six transparent 440x440 .webp pictures in `assets/`, one per pose (good, moderate, mask, cough, oxygen, passout; the file names are up to you, the `files` map in `MASCOTS` points to them, e.g. the panda's mask and cough pictures are `panda-unhealthy` and `panda-hazard`), add an entry to `MASCOTS` in `app.js` (name, label, picture names, alt text), and add one line in `styles.css` per pose under "per-mascot face positions" (`--hx --hy --hrx --hry` = where the sweat beads may sit, `--mx --my` = mouth or mask). The picker builds itself from `MASCOTS`.
 
 ## Haze states
 
@@ -62,7 +65,7 @@ All per-state colours live as CSS variables under `[data-state="..."]` in `style
 
 - Font: Hanken Grotesk, weights 200 to 500 (loaded from Google Fonts in `index.html`).
 - Glass: 10% white fill, 12px backdrop blur, 1px light border (`--glass-bg`, `--glass-blur`).
-- Grain: `--grain: 0.7` at the top of `styles.css` (tiled noise image `assets/grain.webp`, overlay blend).
+- Grain: `--grain: 0.4` at the top of `styles.css` (tiled noise image `assets/grain.webp`, overlay blend).
 - Headline word: weight 200, size per state (`--band-size`), 60px on phones.
 - Band colours: `--c-good … --c-hazard`, with lighter variants on the dark theme.
 
@@ -72,7 +75,7 @@ Nav pill, then a hero (band word, tip, metrics card AQI | 1 hr PM 2.5 (µg/m³) 
 
 ## Notes for the integrator
 
-- Sample values and the placeholder labels ("Right now", "Hourly") are not live data. The "+N° warmer" note is computed from `feels - temp`.
+- The page starts with "Loading" and dashes; sample values only appear with `?demo=...`. The "+N° warmer" note is computed from `feels - temp`.
 - Tip copy per state is in the `STATE` object in `app.js`.
 - Map pins are positioned in percentages of a 1025×645 image; keep `island.webp` at that aspect ratio.
 - Region tints are an SVG masked by the island image (`.isle-mask`), so they need `assets/island.webp` served from the same origin.
@@ -82,7 +85,7 @@ Nav pill, then a hero (band word, tip, metrics card AQI | 1 hr PM 2.5 (µg/m³) 
 
 - `api/haze.js` is a Vercel serverless function (must stay in the `api/` folder). It reads NEA's data.gov.sg feeds (PM2.5, PSI, air temperature, humidity, wind), averages the weather stations, converts PM2.5 to AQI, calculates "feels like" (Steadman / Australian BoM apparent temperature) and returns one small JSON at `/api/haze`. Results are cached for 5 minutes.
 - `data.js` calls `/api/haze` on load, on the Refresh button, and every 10 minutes while the tab is open, then passes the numbers to `HazeWatch.render()`.
-- Anything missing shows as an en dash; stale air data shows "Delayed" in the top bar; sample data only appears with `?demo=good|moderate|sensitive|unhealthy|very|hazard`.
+- A single missing number shows as an en dash; a region with no readings at all says "No data". Air data more than 2 hours old, or old readings kept because a refresh failed, shows "Delayed" in the top bar with a note at the bottom. If the page has never had an answer it says "Air data unavailable" and tries again after 45 seconds (up to 4 times); sample data only appears with `?demo=good|moderate|sensitive|unhealthy|very|hazard`.
 - NEA does not publish "feels like", so it is calculated. Other apps use other formulas and may differ by 1-3 °C. The formula is the single `feelsLike` function in `api/haze.js`.
 
 ## Pandas

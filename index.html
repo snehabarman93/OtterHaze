@@ -7,7 +7,7 @@
 <meta name="description" content="Live air quality (AQI, 1 hr PM 2.5, PSI), temperature and feels-like for Singapore, from NEA data.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@200;300;400;500;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@200;300;400;500&amp;display=swap">
 <link rel="stylesheet" href="styles.css">
 <!-- Vercel Web Analytics: counts visitors and page views, no cookies. Needs Analytics switched on in the Vercel dashboard. -->
 <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
@@ -34,38 +34,38 @@
     <section class="hero">
       <div class="hero__text">
         <div class="eyebrow"><span class="dot dot--state"></span>Singapore right now</div>
-        <h1 class="bandword" data-bind="aqiBand">Moderate</h1>
+        <h1 class="bandword" data-bind="aqiBand">Loading</h1>
         <p class="tip" data-bind="tip"></p>
 
         <div class="cards">
           <div class="glass card">
             <div class="col">
               <div class="label">AQI</div>
-              <div class="num" data-bind="aqi">75</div>
-              <div class="sub"><span class="dot" data-band-for="aqi"></span><span data-bind="aqiBand">Moderate</span></div>
+              <div class="num" data-bind="aqi">–</div>
+              <div class="sub"><span class="dot" data-band-for="aqi"></span><span data-bind="aqiBand">–</span></div>
             </div>
             <div class="col">
               <div class="label">1 hr PM 2.5</div>
-              <div class="num"><span data-bind="pm25">24</span><span class="num__unit">µg/m³</span></div>
-              <div class="sub"><span class="dot" data-band-for="pm25"></span><span data-bind="pm25Band">Normal</span></div>
+              <div class="num"><span data-bind="pm25">–</span><span class="num__unit">µg/m³</span></div>
+              <div class="sub"><span class="dot" data-band-for="pm25"></span><span data-bind="pm25Band">–</span></div>
             </div>
             <div class="col">
               <div class="label">PSI 24-hour</div>
-              <div class="num" data-bind="psi">52</div>
-              <div class="sub"><span class="dot" data-band-for="psi"></span><span data-bind="psiBand">Moderate</span></div>
+              <div class="num" data-bind="psi">–</div>
+              <div class="sub"><span class="dot" data-band-for="psi"></span><span data-bind="psiBand">–</span></div>
             </div>
           </div>
 
           <div class="glass card">
             <div class="col">
               <div class="label">Temperature</div>
-              <div class="num"><span data-bind="temp">31</span>°C</div>
-              <div class="sub" data-bind="tempNote">Right now</div>
+              <div class="num"><span data-bind="temp">–</span>°C</div>
+              <div class="sub" data-bind="tempNote">&nbsp;</div>
             </div>
             <div class="col">
               <div class="label">Feels like</div>
-              <div class="num"><span data-bind="feels">37</span>°C</div>
-              <div class="sub" data-bind="feelsNote">+6° warmer</div>
+              <div class="num"><span data-bind="feels">–</span>°C</div>
+              <div class="sub" data-bind="feelsNote">&nbsp;</div>
             </div>
           </div>
         </div>
@@ -153,6 +153,7 @@
     <div class="refresh-row"><button type="button" class="btn" id="refresh">Refresh</button></div>
 
     <p class="foot" id="status" role="status"></p>
+    <noscript><p class="foot">Live readings need JavaScript turned on.</p></noscript>
 
     <footer class="credit">Built by Considered House (Singapore)</footer>
   </main>

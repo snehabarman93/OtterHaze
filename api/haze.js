@@ -16,6 +16,9 @@ const ageMin = (ts) => (ts ? Math.round((Date.now() - Date.parse(ts)) / 60000) :
 // Today's date in Singapore (UTC+8), as YYYY-MM-DD. offset = -1 gives yesterday.
 const sgDay = (offset = 0) => new Date(Date.now() + 8 * 3600e3 + offset * 864e5).toISOString().slice(0, 10);
 
+// How long the page should trust air data: the page shows it as "Delayed" after AIR_STALE_MIN in data.js (2 h);
+// the server keeps serving last-good air data for up to MAX_AIR_AGE_MIN below (3 h), flagged in `fallback`.
+
 // Whole request must finish within ~8 s (Vercel's free plan stops functions at 10 s).
 const DEADLINE_MS = 8000;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -124,7 +127,7 @@ async function latestStation(name, lo, hi, deadline) {
 // hiccups for a moment, the page keeps showing the last good numbers instead of dashes, as long as
 // they are under 3 hours old. The ages in the answer stay honest.
 const MAX_AIR_AGE_MIN = 180;
-let lastAir = null, lastWx = null;
+let lastPm = null, lastPsi = null, lastWx = null;
 
 module.exports = async (req, res) => {
   const deadline = Date.now() + DEADLINE_MS;
@@ -176,18 +179,30 @@ module.exports = async (req, res) => {
     humidity: round(H.v),
     regions,
     missing,
-    ages: { pm25: ageMin(out_ts(pmItem)), psi: ageMin(out_ts(psiItem)), temp: ageMin(T.ts), humidity: ageMin(H.ts), wind: ageMin(W.ts) },
+    ages: { pm25: ageMin(pmItem && pmItem.ts), psi: ageMin(psiItem && psiItem.ts), temp: ageMin(T.ts), humidity: ageMin(H.ts), wind: ageMin(W.ts) },
   };
 
   // Fall back to the last good numbers for a group that came back empty this time.
+  // PM2.5 (with AQI) and PSI are separate NEA feeds, so each one falls back on its own:
+  // a PSI hiccup no longer blanks PSI while PM2.5 is fine, and is never saved as the "last good" PSI.
+  // `fallback` tells the page which parts are old, so it can say so.
   const fallback = [];
   if (out.aqi !== null) {
-    lastAir = { aqi: out.aqi, pm25: out.pm25, psi: out.psi, regions, upd: { pm25: out.updated.pm25, psi: out.updated.psi } };
-  } else if (lastAir && ageMin(lastAir.upd.pm25) <= MAX_AIR_AGE_MIN) {
-    Object.assign(out, { aqi: lastAir.aqi, pm25: lastAir.pm25, psi: lastAir.psi, regions: lastAir.regions });
-    out.updated.pm25 = lastAir.upd.pm25; out.updated.psi = lastAir.upd.psi;
-    out.ages.pm25 = ageMin(lastAir.upd.pm25); out.ages.psi = ageMin(lastAir.upd.psi);
-    fallback.push("air");
+    lastPm = { aqi: out.aqi, pm25: out.pm25, ts: out.updated.pm25,
+      regions: Object.fromEntries(REGIONS.map((r) => [r, { aqi: regions[r].aqi, pm25: regions[r].pm25 }])) };
+  } else if (lastPm && ageMin(lastPm.ts) <= MAX_AIR_AGE_MIN) {
+    Object.assign(out, { aqi: lastPm.aqi, pm25: lastPm.pm25 });
+    REGIONS.forEach((r) => Object.assign(regions[r], lastPm.regions[r]));
+    out.updated.pm25 = lastPm.ts; out.ages.pm25 = ageMin(lastPm.ts);
+    fallback.push("pm25");
+  }
+  if (out.psi !== null) {
+    lastPsi = { psi: out.psi, ts: out.updated.psi, regions: Object.fromEntries(REGIONS.map((r) => [r, regions[r].psi])) };
+  } else if (lastPsi && ageMin(lastPsi.ts) <= MAX_AIR_AGE_MIN) {
+    out.psi = lastPsi.psi;
+    REGIONS.forEach((r) => { regions[r].psi = lastPsi.regions[r]; });
+    out.updated.psi = lastPsi.ts; out.ages.psi = ageMin(lastPsi.ts);
+    fallback.push("psi");
   }
   if (out.temp !== null) {
     lastWx = { temp: out.temp, feels: out.feels, humidity: out.humidity, ts: out.updated.weather };
@@ -213,7 +228,6 @@ module.exports = async (req, res) => {
   res.status(200).json(out);
 };
 
-function out_ts(x) { return x ? x.ts : null; }
 module.exports.toAqi = toAqi;
 module.exports.feelsLike = feelsLike;
-module.exports._reset = () => { lastAir = null; lastWx = null; };
+module.exports._reset = () => { lastPm = null; lastPsi = null; lastWx = null; };
