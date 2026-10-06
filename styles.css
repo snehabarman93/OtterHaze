@@ -2,18 +2,18 @@
    Haze Watch SG: styles
    The whole look is driven by three attributes JS sets on <html>:
      data-state = good | moderate | sensitive | unhealthy | very | hazard   (from AQI band)
-     data-theme = light | mid | dark                            (text/glass colours)
+     data-tone = light | mid | dark                            (text/glass colours)
      data-pose  = good | moderate | mask | cough | oxygen | passout (which panda shows)
    ========================================================================== */
 
 :root {
   --font: 'Hanken Grotesk', system-ui, sans-serif;
   --grain: 0.4;               /* film grain strength, 0 to 1 */
-  --glass-blur: 28px;
+  --glass-blur: 12px;
 }
 
 /* ---- Theme: text + glass colours ---------------------------------------- */
-[data-theme="light"] {
+[data-tone="light"] {
   --ink: #1C1B19; --muted: #4F4D47; --hair: rgba(28, 27, 25, 0.22);
   --glass-bg: rgba(255, 255, 255, 0.10); --glass-border: rgba(255, 255, 255, 0.75);
   --glass-hi: rgba(255, 255, 255, 0.9); --glass-shadow: rgba(60, 55, 45, 0.10);
@@ -21,7 +21,7 @@
   --map-dot: rgba(28, 27, 25, 0.14);
   --map-filter: drop-shadow(0 16px 22px rgba(60, 55, 45, 0.28));
 }
-[data-theme="mid"] {
+[data-tone="mid"] {
   --ink: #151412; --muted: #2B2A27; --hair: rgba(21, 20, 18, 0.30);
   --glass-bg: rgba(255, 255, 255, 0.10); --glass-border: rgba(255, 255, 255, 0.55);
   --glass-hi: rgba(255, 255, 255, 0.7); --glass-shadow: rgba(30, 28, 25, 0.20);
@@ -29,7 +29,7 @@
   --map-dot: rgba(21, 20, 18, 0.18);
   --map-filter: drop-shadow(0 16px 22px rgba(30, 28, 25, 0.32));
 }
-[data-theme="dark"] {
+[data-tone="dark"] {
   --ink: #F4F2EE; --muted: #D2CFC9; --hair: rgba(244, 242, 238, 0.28);
   --glass-bg: rgba(255, 255, 255, 0.10); --glass-border: rgba(255, 255, 255, 0.18);
   --glass-hi: rgba(255, 255, 255, 0.22); --glass-shadow: rgba(0, 0, 0, 0.35);
@@ -39,10 +39,10 @@
 }
 
 /* ---- Band colours (readable on light vs dark pages) --------------------- */
-[data-theme="light"], [data-theme="mid"] {
+[data-tone="light"], [data-tone="mid"] {
   --c-good: #1F7A4A; --c-moderate: #8A5C00; --c-sensitive: #B84A12; --c-unhealthy: #A81F3A; --c-very: #6B2A7A; --c-hazard: #7A1030;
 }
-[data-theme="dark"] {
+[data-tone="dark"] {
   --c-good: #6FD99B; --c-moderate: #F2C14E; --c-sensitive: #FF9A5C; --c-unhealthy: #FF7A8F; --c-very: #D79BE8; --c-hazard: #E04660;
 }
 
@@ -65,19 +65,9 @@ body { margin: 0; }
 
 /* ---- Animated background ------------------------------------------------- */
 .bg { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.wash, .haze, .sun { position: absolute; border-radius: 50%; transition: background-color 1.6s ease, opacity 1.6s ease, box-shadow 1.6s ease; }
-.wash { filter: blur(80px); animation: drift 40s ease-in-out infinite alternate; }
-.wash--a { top: -80px; right: -6%; width: 760px; height: 560px; background: var(--wash); opacity: 0.8; }
-.wash--b { top: 620px; left: -10%; width: 820px; height: 480px; background: var(--wash2); opacity: 0.6; animation-duration: 58s; }
-.haze { filter: blur(60px); background: var(--haze-c); opacity: var(--haze); animation: drift 54s ease-in-out infinite alternate-reverse; }
-.haze--a { top: 140px; left: -14%; width: 1000px; height: 320px; }
-.haze--b { top: 560px; left: 26%; width: 1100px; height: 340px; animation-duration: 66s; }
-.haze--c { top: 1000px; left: -16%; width: 1200px; height: 340px; animation-duration: 72s; }
-.sun { top: 70px; right: 14%; width: 96px; height: 96px; filter: blur(6px); background: var(--sun-c); box-shadow: 0 0 80px 26px var(--sun-c); opacity: var(--sun); animation: pulse 7s ease-in-out infinite; }
+.sun { position: absolute; border-radius: 50%; transition: background-color 1.6s ease, opacity 1.6s ease, box-shadow 1.6s ease; top: 70px; right: 14%; width: 96px; height: 96px; filter: blur(6px); background: var(--sun-c); box-shadow: 0 0 80px 26px var(--sun-c); opacity: var(--sun); }
 .part { position: absolute; border-radius: 50%; opacity: 0; animation: float ease-in-out infinite; }
 
-@keyframes drift { from { transform: translate(-90px, 0) scale(1); } to { transform: translate(120px, 30px) scale(1.12); } }
-@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 @keyframes float { 0% { transform: translate(0, 0); opacity: 0; } 15% { opacity: 0.5; } 85% { opacity: 0.5; } 100% { transform: translate(46px, -180px); opacity: 0; } }
 @keyframes ping { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(3); opacity: 0; } }
 
@@ -87,8 +77,8 @@ body { margin: 0; }
 /* ---- Glass --------------------------------------------------------------- */
 .glass {
   background-color: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(1.7) brightness(1.04);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.7) brightness(1.04);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.25);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.25);
   border: 1px solid var(--glass-border);
   box-shadow: 0 14px 44px var(--glass-shadow), inset 0 1px 0 var(--glass-hi), inset 1px 0 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(255,255,255,.10), inset 0 0 22px rgba(255,255,255,.07);
   transition: background-color 1.6s ease, border-color 1.6s ease, box-shadow 1.6s ease;
@@ -219,9 +209,9 @@ body { margin: 0; }
 
 /* ---- Reduced motion ------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
-  .wash, .haze, .sun, .part, .ping, .live { animation: none; }
+  .part, .ping, .live { animation: none; }
   .part { opacity: 0.35; }
-  .stage, .wash, .haze, .sun, .glass, .halo, .pose { transition: none; }
+  .stage, .sun, .glass, .halo, .pose { transition: none; }
 }
 
 
@@ -237,11 +227,11 @@ body { margin: 0; }
 /* ---- Panda: gentle bob when the air is good, shakier as haze rises ---- */
 html { --amp: 0; --rot: 0; --shake-dur: 4s; }
 html[data-state="good"]      { --amp: 0;   --rot: 0;   --shake-dur: 4s; }
-html[data-state="moderate"]  { --amp: 1;   --rot: .6;  --shake-dur: 2.4s; }
-html[data-state="sensitive"] { --amp: 2.5; --rot: 1.6; --shake-dur: 1.1s; }
-html[data-state="unhealthy"] { --amp: 4;   --rot: 2.8; --shake-dur: .6s; }
-html[data-state="very"]      { --amp: 5;   --rot: 3.4; --shake-dur: .45s; }
-html[data-state="hazard"]    { --amp: 6;   --rot: 4;   --shake-dur: .38s; }
+html[data-state="moderate"]  { --amp: .6;  --rot: .4;  --shake-dur: 3s; }
+html[data-state="sensitive"] { --amp: 1.5; --rot: 1;   --shake-dur: 1.6s; }
+html[data-state="unhealthy"] { --amp: 2.4; --rot: 1.7; --shake-dur: 1s; }
+html[data-state="very"]      { --amp: 3;   --rot: 2;   --shake-dur: .8s; }
+html[data-state="hazard"]    { --amp: 3.6; --rot: 2.4; --shake-dur: .7s; }
 .panda { animation: shake var(--shake-dur) ease-in-out infinite; transform-origin: 50% 90%; }
 @keyframes shake {
   0%, 100% { transform: translate(0, 0) rotate(0); }
@@ -254,7 +244,7 @@ html[data-state="good"] .panda { animation-name: bob; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @media (prefers-reduced-motion: reduce) { .panda { animation: none; } }
 
-@media (max-width: 720px) { :root { --glass-blur: 18px; } }
+@media (max-width: 720px) { :root { --glass-blur: 8px; } }
 
 /* ---- Panda extras: small movements per pose (all in code) ---- */
 .fx { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .6s ease; }
@@ -333,7 +323,7 @@ html[data-pose="passout"] .pose--passout { transform-origin: 50% 95%; animation:
 html[data-pose="passout"] .panda-shadow { width: 300px; }
 
 /* ---- Temperature: cold (shivering, icy glow, snow, breath) ---- */
-html[data-temp="cold"] .panda__body { animation: shiver .16s linear infinite; filter: drop-shadow(0 0 14px rgba(125, 195, 255, .9)); }
+html[data-temp="cold"] .panda__body { animation: shiver .3s linear infinite; filter: drop-shadow(0 0 14px rgba(125, 195, 255, .9)); }
 @keyframes shiver { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1.6px) rotate(-.4deg); } 75% { transform: translateX(1.6px) rotate(.4deg); } }
 .fx--cold { opacity: 0; }
 html[data-temp="cold"] .fx--cold { opacity: 1; }
@@ -421,3 +411,14 @@ html[data-mascot="otter"][data-pose="passout"] { --hx: 30%; --hy: 84%; --hrx: 14
 
 .live { flex: none; }   /* never squash the status dot into an oval */
 @media (max-width: 350px) { .nav__meta { display: none; } }
+
+/* Units keep their lower case (an upper-case micro sign turns into a different letter) */
+.unit { text-transform: none; letter-spacing: 0; }
+.sub { flex-wrap: wrap; }
+
+
+/* ---- Tab hidden: freeze every animation (set by app.js) ------------------- */
+html.is-hidden *, html.is-hidden *::before, html.is-hidden *::after { animation-play-state: paused !important; }
+
+.num__unit { font-size: 13px; font-weight: 400; letter-spacing: 0; margin-left: 5px; opacity: .7; white-space: nowrap; }
+@media (max-width: 720px) { .num__unit { font-size: 10px; margin-left: 3px; } }

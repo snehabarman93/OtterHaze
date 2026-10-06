@@ -4,7 +4,7 @@ A plain HTML/CSS/JS version of the chosen design. Open `index.html` to preview; 
 
 ```
 index.html   structure, with data-bind hooks
-styles.css   all visuals, driven by data-state / data-theme / data-pose on <html>
+styles.css   all visuals, driven by data-state / data-tone / data-pose on <html>
 app.js       band code, render(data), sample data
 assets/      panda-* and otter-* pictures (6 poses each), island.webp (relief map)
 ```
@@ -39,7 +39,7 @@ Call it after each fetch (the page already re-renders cleanly on repeat calls). 
 
 ## Mascots
 
-Visitors choose Panda or Otter with the two small icons in the header (top right) (their choice is remembered in their browser; `?mascot=otter` forces one, handy for sharing). Both have the same six poses, and everything else (shaking, breathing, sweat beads, shivering) works for each.
+**Everyone sees the Panda by default.** Visitors can switch to the Otter with the two small icons in the header (top right); that choice is remembered in their browser and only saved when they click (`?mascot=otter` forces one, handy for sharing). All have the same six poses, and everything else (shaking, breathing, sweat beads, shivering) works for each.
 
 To add another mascot (the merlion): put six transparent 440x440 .webp pictures in `assets/` (good, moderate, mask, cough, oxygen, passout), add an entry to `MASCOTS` in `app.js` (name, label, picture names, alt text), and add one line in `styles.css` per pose under "per-mascot face positions" (`--hx --hy --hrx --hry` = where the sweat beads may sit, `--mx --my` = mouth or mask). The picker builds itself from `MASCOTS`.
 
@@ -68,7 +68,7 @@ All per-state colours live as CSS variables under `[data-state="..."]` in `style
 
 ## Layout
 
-Nav pill, then a hero (band word, tip, metrics card AQI | PM2.5 | PSI, temperature card Temperature | Feels like, and the panda), then the Island view. At 720px and below: padding shrinks, the "Updated hourly" label hides, map pills hide and the region list under the map appears.
+Nav pill, then a hero (band word, tip, metrics card AQI | 1 hr PM 2.5 (µg/m³) | PSI 24-hour, temperature card Temperature | Feels like, and the panda), then the Island view. At 720px and below: padding shrinks, the "Updated hourly" label hides, map pills hide and the region list under the map appears.
 
 ## Notes for the integrator
 
@@ -116,3 +116,14 @@ Sweat beads stay inside the panda's face: each pose has a head oval (`--hx --hy 
 Strength of the air-quality shake per level is `--amp`, `--rot` and `--shake-dur` in `styles.css`. Everything stops for visitors with "reduce motion" turned on.
 
 Preview any combination: `index.html?demo=good&aqi=180&psi=250&temp=22`
+
+## 1-hour PM 2.5 bands (NEA)
+
+Shown under the PM 2.5 number as just the name (Normal, Elevated, High, Very High):
+
+| 1 hr PM 2.5 (µg/m³) | Band |
+|---|---|
+| 0 to 55 | Band 1 · Normal |
+| 56 to 150 | Band 2 · Elevated |
+| 151 to 250 | Band 3 · High |
+| 251 and above | Band 4 · Very High |
