@@ -18,7 +18,7 @@
    }
 
    Any value may be null (shown as an en dash). Second argument is optional:
-   HazeWatch.render(data, { bandword, tip, tempNote, error })
+   HazeWatch.render(data, { bandword, tip, tempNote, psiTag, error })
 
    Preview any state without data:  index.html?demo=good|moderate|sensitive|unhealthy|very|hazard
    Fine-tune the preview:           index.html?demo=good&aqi=180&psi=250&temp=22&feels=24
@@ -117,6 +117,7 @@
   //   opts.bandword  headline when there is no AQI ("Loading", "No data")
   //   opts.tip       sentence under the headline when there is no AQI
   //   opts.tempNote  small text under the temperature
+  //   opts.psiTag    short tag after the PSI band name ("Live", or "NEA 6:00 pm")
   //   opts.error     true = show the neutral panda even though there is no AQI
   const has = (v) => typeof v === 'number' && isFinite(v);
   const dash = (v) => (has(v) ? v : '\u2013');
@@ -215,6 +216,7 @@
     setText('temp', deg(data.temp));
     setText('feels', deg(data.feels));
     setText('psiBand', psiBand ? psiBand.name : '\u2013');
+    setText('psiTag', psiBand && opts.psiTag ? ' \u00b7 ' + opts.psiTag : ''); // "Live", or "NEA 6:00 pm"
     setText('pm25Band', pmBand ? pmBand.name : '\u2013');
     setText('tempNote', opts.tempNote || (has(data.temp) ? 'Right now' : 'Unavailable'));
 

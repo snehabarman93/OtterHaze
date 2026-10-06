@@ -8,6 +8,8 @@ styles.css   all visuals, driven by data-state / data-tone / data-pose on <html>
 app.js       band code, render(data), sample data, mascot picker
 data.js      fetches /api/haze, keeps last good values, retries, fills the page
 api/haze.js  Vercel server function: reads NEA's open data and does the sums
+lib/psi.js   PSI method from NEA's computation document (breakpoints, sub-index, rolling mean)
+test/        node tests for the PSI method and the server function
 test.html    tester page with sliders (sample data only, not linked from the site)
 assets/      panda-* and otter-* pictures (6 poses each), grain.webp, island.webp (relief map)
 ```
@@ -83,7 +85,25 @@ Nav pill, then a hero (band word, tip, metrics card AQI | 1 hr PM 2.5 (µg/m³) 
 
 ## Live data
 
-- `api/haze.js` is a Vercel serverless function (must stay in the `api/` folder). It reads NEA's data.gov.sg feeds (PM2.5, PSI, air temperature, humidity, wind), averages the weather stations, converts PM2.5 to AQI, calculates "feels like" (Steadman / Australian BoM apparent temperature) and returns one small JSON at `/api/haze`. Results are cached for 5 minutes.
+- `api/haze.js` is a Vercel serverless function (must stay in the `api/` folder). It reads NEA's data.gov.sg feeds (PM2.5, PSI, air temperature, humidity, wind), averages the weather stations, converts PM2.5 to AQI, works out the live PSI (next section), calculates "feels like" (Steadman / Australian BoM apparent temperature) and returns one small JSON at `/api/haze`. Results are cached for 5 minutes.
+
+## Live PSI
+
+NEA publishes its 24-hour PSI once an hour, and that record can trail the hourly PM2.5 feed by an hour or more. So the PSI on the page is calculated here, with the method in NEA's "Computation of the Pollutant Standards Index (PSI)" (March 2014), from fresher inputs. The method itself is in `lib/psi.js` (breakpoint table, sub-index formula, highest-of-six rule); change it only there.
+
+1. **PM2.5 sub-index, live.** `api/haze.js` reads the hourly PM2.5 records for yesterday and today (`pm25?date=`), takes the mean of the 24 hours ending at the newest hour (at least 18 of the 24 must be present), rounds it to a whole number as NEA does, and applies the formula to it.
+2. **The other five pollutants** (PM10, SO2, CO, O3, NO2) have no hourly feed, so they come from the newest NEA PSI record. NEA's published sub-index is used when there is one (NEA works it out from unrounded data), otherwise the formula is applied to the published concentration.
+3. **PSI = the highest sub-index**, per region. The island figure is the plain average of the five regions, as before (see `islandPsi`).
+
+The answer from `/api/haze` says which it is: `psiSource` is `"live"` (calculated as above) or `"nea"` (NEA's own published PSI, used when the PM2.5 history is incomplete or the PSI record is missing). `psiNea` is always NEA's published island figure, and `updated.psi` / `updated.psiNea` are the hours each is for. The page shows "Live" or "NEA 6:00 pm" next to the PSI band name, and explains the difference in the footnote.
+
+Checked against NEA's published numbers: the formula reproduces NEA's PM2.5, PM10 and SO2 sub-indices exactly (15 of 15 in a sample record), and the worked example in the PDF (PM2.5 of 40 gives 83). The window matches too: for 5 October 2026 the mean of the 24 hourly PM2.5 readings ending at 23:00, rounded, equals NEA's published `pm25_twenty_four_hourly` for 23:00 in all five regions (61, 59, 79, 66, 87). That day's data is a test in `test/psi.test.js`. Ozone is the one place a sub-index can differ by 1 from NEA's, because NEA publishes whole-number concentrations, which is why NEA's published sub-index is used for the other pollutants when there is one.
+
+Not applied: the PDF's rule to use 1-hour ozone when 8-hour ozone passes 785 µg/m³ (NEA's open data has no 1-hour ozone, and levels are nowhere near that).
+
+## Tests
+
+`node --test test/psi.test.js` (Node 20+, no installs). Covers the PDF's worked example, every breakpoint, the NO2 rule, the 24-hour window, and `api/haze.js` end to end with NEA's feeds faked.
 - `data.js` calls `/api/haze` on load, on the Refresh button, and every 10 minutes while the tab is open, then passes the numbers to `HazeWatch.render()`.
 - A single missing number shows as an en dash; a region with no readings at all says "No data". Air data more than 2 hours old, or old readings kept because a refresh failed, shows "Delayed" in the top bar with a note at the bottom. If the page has never had an answer it says "Air data unavailable" and tries again after 45 seconds (up to 4 times); sample data only appears with `?demo=good|moderate|sensitive|unhealthy|very|hazard`.
 - NEA does not publish "feels like", so it is calculated. Other apps use other formulas and may differ by 1-3 °C. The formula is the single `feelsLike` function in `api/haze.js`.

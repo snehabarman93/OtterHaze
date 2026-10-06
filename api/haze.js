@@ -1,8 +1,16 @@
 // Haze Watch SG: server function (Vercel). The page calls it at /api/haze.
 //
 // It gathers NEA's open data (data.gov.sg), does the sums, and returns ONE small answer:
-//   { updated, aqi, pm25, psi, temp, feels, humidity, regions, missing, ages }
+//   { updated, aqi, pm25, psi, psiSource, psiNea, temp, feels, humidity, regions, missing, ages }
 // Any number it cannot work out is null, never a guess. The page shows null as a dash.
+//
+// PSI: NEA's own 24-hour PSI is published once an hour and can trail the hourly PM2.5 feed by an hour or
+// more. So the PSI shown here is worked out with NEA's method (lib/psi.js) from the newest hourly PM2.5
+// (a rolling 24-hour mean) plus NEA's latest figures for the other five pollutants. `psiSource` says
+// whether the number is "live" (that calculation) or "nea" (NEA's published PSI, used when the hourly
+// PM2.5 history is incomplete). `psiNea` is always NEA's published island figure, for comparison.
+
+const { subIndex, psiFrom, rollingMean } = require("../lib/psi");
 
 const BASE = "https://api-open.data.gov.sg/v2/real-time/api/";
 const REGIONS = ["north", "south", "east", "west", "central"];
@@ -85,11 +93,43 @@ async function latestAir(name, key, deadline) {
       const ok = items.filter((it) => it && it.readings && validRegions(it.readings[key]) && Date.parse(it.timestamp));
       if (ok.length) {
         const best = ok.reduce((a, b) => (Date.parse(b.timestamp) > Date.parse(a.timestamp) ? b : a));
-        return { ts: best.timestamp, vals: best.readings[key] };
+        return { ts: best.timestamp, vals: best.readings[key], readings: best.readings };
       }
     } catch (e) { /* try the next form */ }
   }
   return null;
+}
+
+// The hourly PM2.5 records for today and yesterday (Singapore dates), oldest first, so a rolling
+// 24-hour mean can be worked out. Only records with at least 3 of 5 regions filled in count.
+// If neither day's list can be read, fall back to just the newest record (no history, so no live PSI).
+async function pm25Series(deadline) {
+  const days = await Promise.allSettled([sgDay(-1), sgDay()].map((d) => getJson("pm25?date=" + d, deadline)));
+  const byTs = new Map();
+  days.forEach((d) => {
+    if (d.status !== "fulfilled") return;
+    (((d.value || {}).data || {}).items || []).forEach((it) => {
+      const vals = it && it.readings && it.readings.pm25_one_hourly;
+      if (validRegions(vals) && Date.parse(it.timestamp)) byTs.set(Date.parse(it.timestamp), { ts: it.timestamp, vals });
+    });
+  });
+  if (byTs.size) return [...byTs.entries()].sort((a, b) => a[0] - b[0]).map((e) => e[1]);
+  const one = await latestAir("pm25", "pm25_one_hourly", deadline);
+  return one ? [{ ts: one.ts, vals: one.vals }] : null;
+}
+
+// The other five pollutants: NEA's published sub-index when there is one (worked out from unrounded
+// data, so it is the more exact), otherwise worked out here from the published concentration.
+const OTHER_POLLUTANTS = [
+  ["pm10", "pm10_twenty_four_hourly"], ["so2", "so2_twenty_four_hourly"], ["co", "co_eight_hour_max"],
+  ["o3", "o3_eight_hour_max"], ["no2", "no2_one_hour_max"],
+];
+function otherSubIndices(readings, region) {
+  return OTHER_POLLUTANTS.map(([p, conc]) => {
+    const published = readings[p + "_sub_index"] && num(readings[p + "_sub_index"][region]);
+    if (published !== null && published !== undefined) return published;
+    return subIndex(p, readings[conc] && num(readings[conc][region]));
+  });
 }
 
 // ---- Weather station feeds ------------------------------------------------
@@ -132,7 +172,7 @@ let lastPm = null, lastPsi = null, lastWx = null;
 module.exports = async (req, res) => {
   const deadline = Date.now() + DEADLINE_MS;
   const [pm, psi, temp, hum, wind] = await Promise.allSettled([
-    latestAir("pm25", "pm25_one_hourly", deadline),
+    pm25Series(deadline),
     latestAir("psi", "psi_twenty_four_hourly", deadline),
     latestStation("air-temperature", 15, 45, deadline),   // degrees C
     latestStation("relative-humidity", 1, 100, deadline), // percent
@@ -141,9 +181,11 @@ module.exports = async (req, res) => {
 
   const missing = [];
   const val = (s) => (s.status === "fulfilled" ? s.value : null);
-  const pmItem = val(pm), psiItem = val(psi);
+  const pmSeries = val(pm) || [];
+  const pmItem = pmSeries.length ? pmSeries[pmSeries.length - 1] : null; // newest hour
+  const psiItem = val(psi);
   if (!pmItem) missing.push("pm25");
-  if (!psiItem) missing.push("psi");
+  // "psi" is added to `missing` further down, once it is known whether either source gave a number.
 
   // Weather: use a reading only if it is recent enough.
   const weather = (s, name) => {
@@ -157,11 +199,30 @@ module.exports = async (req, res) => {
   const H = weather(hum, "humidity");
   const W = weather(wind, "wind");
 
+  // PSI per region, two ways:
+  //   nea  = NEA's published 24-hour PSI (the newest hourly PSI record)
+  //   live = NEA's method (lib/psi.js) on the rolling 24-hour mean PM2.5 up to the newest hourly PM2.5,
+  //          taking the highest of that and NEA's latest sub-indices for the other pollutants.
+  // Live needs the PSI record too (on a clean day ozone or PM10 can be the highest sub-index, and only
+  // that record has them) and at least 18 of the last 24 hours of PM2.5.
+  const nea = {}, live = {};
+  REGIONS.forEach((r) => {
+    nea[r] = psiItem ? num(psiItem.vals[r]) : null;
+    live[r] = null;
+    if (!pmItem || !psiItem) return;
+    const mean24 = rollingMean(pmSeries, r, pmItem.ts);
+    if (mean24 === null) return;
+    // NEA publishes the 24-hour PM2.5 as a whole number, and its sub-indices follow from the whole number
+    live[r] = psiFrom([subIndex("pm25", Math.round(mean24)), ...otherSubIndices(psiItem.readings, r)]);
+  });
+  const useLive = REGIONS.filter((r) => live[r] !== null).length >= 3;
+  const psiSource = useLive ? "live" : "nea";
+
   // Regions
   const regions = {};
   REGIONS.forEach((r) => {
     const p = pmItem ? num(pmItem.vals[r]) : null;
-    const s = psiItem ? num(psiItem.vals[r]) : null;
+    const s = useLive && live[r] !== null ? live[r] : nea[r];
     regions[r] = { pm25: p, psi: s, aqi: p === null ? null : toAqi(p) };
   });
 
@@ -169,17 +230,22 @@ module.exports = async (req, res) => {
   const windMs = W.v === null ? 0 : W.v * 0.514444;
   const feels = T.v !== null && H.v !== null ? feelsLike(T.v, H.v, windMs) : null;
 
+  const psiNow = islandPsi(REGIONS.map((r) => regions[r].psi));
+  if (psiNow === null) missing.push("psi");
+  const psiTs = useLive ? pmItem.ts : psiItem ? psiItem.ts : null; // the hour the PSI shown is for
   const out = {
-    updated: { pm25: pmItem ? pmItem.ts : null, psi: psiItem ? psiItem.ts : null, weather: T.ts },
+    updated: { pm25: pmItem ? pmItem.ts : null, psi: psiTs, psiNea: psiItem ? psiItem.ts : null, weather: T.ts },
     aqi: islandMean(REGIONS.map((r) => regions[r].aqi)),
     pm25: islandMean(REGIONS.map((r) => regions[r].pm25)),
-    psi: islandPsi(REGIONS.map((r) => regions[r].psi)),
+    psi: psiNow,
+    psiSource: psiNow === null ? null : psiSource,
+    psiNea: islandPsi(REGIONS.map((r) => nea[r])),
     temp: T.v === null ? null : Math.round(T.v * 10) / 10,
     feels: feels === null ? null : Math.round(feels * 10) / 10,
     humidity: round(H.v),
     regions,
     missing,
-    ages: { pm25: ageMin(pmItem && pmItem.ts), psi: ageMin(psiItem && psiItem.ts), temp: ageMin(T.ts), humidity: ageMin(H.ts), wind: ageMin(W.ts) },
+    ages: { pm25: ageMin(pmItem && pmItem.ts), psi: ageMin(psiTs), temp: ageMin(T.ts), humidity: ageMin(H.ts), wind: ageMin(W.ts) },
   };
 
   // Fall back to the last good numbers for a group that came back empty this time.
@@ -197,9 +263,10 @@ module.exports = async (req, res) => {
     fallback.push("pm25");
   }
   if (out.psi !== null) {
-    lastPsi = { psi: out.psi, ts: out.updated.psi, regions: Object.fromEntries(REGIONS.map((r) => [r, regions[r].psi])) };
+    lastPsi = { psi: out.psi, psiSource: out.psiSource, psiNea: out.psiNea, ts: out.updated.psi,
+      regions: Object.fromEntries(REGIONS.map((r) => [r, regions[r].psi])) };
   } else if (lastPsi && ageMin(lastPsi.ts) <= MAX_AIR_AGE_MIN) {
-    out.psi = lastPsi.psi;
+    out.psi = lastPsi.psi; out.psiSource = lastPsi.psiSource; out.psiNea = lastPsi.psiNea;
     REGIONS.forEach((r) => { regions[r].psi = lastPsi.regions[r]; });
     out.updated.psi = lastPsi.ts; out.ages.psi = ageMin(lastPsi.ts);
     fallback.push("psi");

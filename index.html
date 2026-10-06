@@ -52,7 +52,7 @@
             <div class="col">
               <div class="label">PSI 24-hour</div>
               <div class="num" data-bind="psi">–</div>
-              <div class="sub"><span class="dot" data-band-for="psi"></span><span data-bind="psiBand">–</span></div>
+              <div class="sub"><span class="dot" data-band-for="psi"></span><span data-bind="psiBand">–</span><span data-bind="psiTag"></span></div>
             </div>
           </div>
 
@@ -149,7 +149,7 @@
       <ul class="pinlist" id="pinlist"></ul>
     </section>
 
-    <p class="foot">Data from data.gov.sg (NEA): 1-hour PM 2.5, 24-hour PSI, and temperature, humidity and wind from weather stations across the island. Feels like is calculated from these, not published by NEA.</p>
+    <p class="foot">Data from data.gov.sg (NEA): 1-hour PM 2.5, pollutant readings for the PSI, and temperature, humidity and wind from weather stations across the island. NEA updates its own 24-hour PSI once an hour and it can trail the PM 2.5 readings, so the PSI here is calculated with NEA's method from the latest hourly PM 2.5 (averaged over the last 24 hours) and NEA's other pollutant readings. It is marked "Live" when calculated this way, or shows NEA's published figure and its time when there is not enough PM 2.5 history. Feels like is calculated from the weather readings, not published by NEA.</p>
     <div class="refresh-row"><button type="button" class="btn" id="refresh">Refresh</button></div>
 
     <p class="foot" id="status" role="status"></p>
