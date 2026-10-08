@@ -454,5 +454,11 @@ html.is-hidden *, html.is-hidden *::before, html.is-hidden *::after { animation-
 html.is-off-panda .hero__panda *, html.is-off-panda .hero__panda *::before, html.is-off-panda .hero__panda *::after,
 html.is-off-map .map *, html.is-off-map .map *::before, html.is-off-map .map *::after { animation-play-state: paused !important; }
 
+/* ---- Nobody using the page: stop every loop, back to the resting look (set by app.js) ----
+   Unlike the pauses above this removes the animation, so nothing is left frozen half way: the panda
+   returns to its place, and the map pulses and little effects (which are only visible mid-animation) are hidden. */
+html.is-resting *, html.is-resting *::before, html.is-resting *::after { animation: none !important; }
+html.is-resting .ping, html.is-resting .fx i, html.is-resting .fx b, html.is-resting .fx em, html.is-resting .fx s { opacity: 0; }
+
 .num__unit { font-size: 13px; font-weight: 400; letter-spacing: 0; margin-left: 5px; opacity: .7; white-space: nowrap; }
 @media (max-width: 720px) { .num__unit { font-size: 10px; margin-left: 3px; } }
