@@ -128,6 +128,10 @@ Sweat beads stay inside the panda's face: each pose has a head oval (`--hx --hy 
 
 Strength of the air-quality shake per level is `--amp`, `--rot` and `--shake-dur` in `styles.css`. Everything stops for visitors with "reduce motion" turned on.
 
+Looping animations are also frozen when they cannot be seen, to spare the visitor's CPU and GPU: all of them while the tab is hidden (`is-hidden` on `<html>`), the panda while its section is scrolled out of view (`is-off-panda`), and the map pin pulses while the map is (`is-off-map`). `app.js` sets the classes (IntersectionObserver, 80px margin) and `styles.css` ("Section scrolled out of view") pauses the animations; without IntersectionObserver nothing is paused.
+
+The loops also rest when nobody is using the page. After `IDLE_MS` (60 seconds, top of that block in `app.js`) without a mouse move, key press, touch or scroll, `<html>` gets `is-resting`: `styles.css` ("Nobody using the page") then removes every animation, so the panda sits in its normal place and the pin pulses and little effects (which only show mid-animation) are hidden. Any of those inputs, or coming back to the tab, starts the motion again. Without this a page left open on a spare screen keeps the browser drawing 60 frames a second (about 4-5% CPU measured on a laptop with the panda passed out; 0% once the nav dot, pin pulses and breathing were switched off). The numbers keep refreshing while it rests.
+
 Preview any combination: `index.html?demo=good&aqi=180&psi=250&temp=22`
 
 ## 1-hour PM 2.5 bands (NEA)

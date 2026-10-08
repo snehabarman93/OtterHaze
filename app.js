@@ -299,6 +299,43 @@
   document.addEventListener('visibilitychange', syncHidden);
   syncHidden();
 
+  // ---- Pause the animations of a section that is scrolled out of view ------
+  // The panda and the map pins loop forever, so they are frozen (see styles.css) while their
+  // section is off screen, with 80px of margin so they are already moving again when it scrolls in.
+  // Without IntersectionObserver nothing is paused and everything simply keeps running.
+  if ('IntersectionObserver' in window) {
+    [['.hero__panda', 'is-off-panda'], ['.map', 'is-off-map']].forEach(([selector, cls]) => {
+      const el = document.querySelector(selector);
+      if (!el) return;
+      new IntersectionObserver((entries) => {
+        document.documentElement.classList.toggle(cls, !entries[entries.length - 1].isIntersecting);
+      }, { rootMargin: '80px' }).observe(el);
+    });
+  }
+
+  // ---- Let the motion rest when nobody is using the page -------------------
+  // The panda, the pin pulses and the nav dot loop forever, which keeps the browser drawing a new frame
+  // 60 times a second for as long as the tab is open, even on a spare screen. After IDLE_MS without a
+  // mouse move, key press, touch or scroll, the page gets `is-resting` and styles.css switches the loops
+  // off, leaving everything in its resting position. Any of those inputs (or coming back to the tab)
+  // starts them again. Numbers keep updating; only the decoration rests.
+  const IDLE_MS = 60 * 1000;
+  const docEl = document.documentElement;
+  let restTimer = null, lastWake = 0;
+  const wake = () => {
+    const now = Date.now();
+    if (now - lastWake < 1000 && !docEl.classList.contains('is-resting')) return; // a moving mouse fires this constantly
+    lastWake = now;
+    docEl.classList.remove('is-resting');
+    clearTimeout(restTimer);
+    restTimer = setTimeout(() => docEl.classList.add('is-resting'), IDLE_MS);
+  };
+  ['pointermove', 'pointerdown', 'keydown', 'wheel', 'scroll', 'touchstart'].forEach((type) => {
+    window.addEventListener(type, wake, { passive: true });
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
+  wake();
+
   // ---- Boot ---------------------------------------------------------------
   // ?demo=<state> shows sample data. Otherwise the page starts empty ("Loading")
   // and data.js fills it from /api/haze. Sample data is never shown as live.
