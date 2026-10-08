@@ -8,7 +8,6 @@
 
 :root {
   --font: 'Hanken Grotesk', system-ui, sans-serif;
-  --grain: 0.4;               /* film grain strength, 0 to 1 */
   --glass-blur: 12px;
 }
 
@@ -57,6 +56,7 @@ body { margin: 0; }
 .stage {
   position: relative; overflow: hidden; min-height: 100vh; min-height: 100svh;
   background-color: var(--bg); color: var(--ink); font-family: var(--font);
+  background-image: url(assets/grain-soft.webp); background-size: 128px 128px; background-repeat: repeat; background-blend-mode: overlay;
   transition: background-color 1.6s ease, color 1.6s ease;
 }
 
@@ -188,11 +188,13 @@ body { margin: 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* ---- Grain --------------------------------------------------------------- */
-/* Fixed to the viewport (not the full page height) and tiled from a small image,
-   so the GPU holds one screen-sized layer instead of a page-sized live filter.
-   assets/grain.webp is the old SVG feTurbulence filter (freq 0.8, 2 octaves) baked into a seamless
-   128px tile at 2x (256 texels), so it looks the same; --grain still sets the strength. */
-.grain { position: fixed; inset: 0; pointer-events: none; background: url(assets/grain.webp) 0 0 / 128px 128px repeat; mix-blend-mode: overlay; opacity: var(--grain); }
+/* Painted as part of the page background (see .stage), not as a layer on top.
+   A full-screen overlay with mix-blend-mode makes the browser keep the whole page behind it in
+   extra graphics-memory layers (about half of all GPU memory in measurements).
+   assets/grain-soft.webp is the old overlay tile (assets/grain.webp, the SVG feTurbulence filter
+   baked into a seamless 128px tile) with the strength already applied: each pixel is
+   128 + 0.4 * (grain - 128), which gives the same result as overlay at opacity 0.4.
+   To change the strength, remake the tile with another factor (README, "Design tokens"). */
 
 /* ---- Mobile -------------------------------------------------------------- */
 @media (max-width: 720px) {
