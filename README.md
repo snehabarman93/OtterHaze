@@ -9,7 +9,7 @@ app.js       band code, render(data), sample data, mascot picker
 data.js      fetches /api/haze, keeps last good values, retries, fills the page
 api/haze.js  Vercel server function: reads NEA's open data and does the sums
 test.html    tester page with sliders (sample data only, not linked from the site, marked noindex)
-assets/      panda-* and otter-* pictures (6 poses each), grain.webp, island.webp (relief map), og.png (1200x630 share picture)
+assets/      panda-* and otter-* pictures (6 poses each), grain.webp (full-strength noise tile, source for the next file), grain-soft.webp (the tile the page uses), island.webp (relief map), og.png (1200x630 share picture)
 robots.txt   lets search engines in and points them to the sitemap
 sitemap.xml  lists the one public page
 favicon.ico, favicon-32.png, apple-touch-icon.png   browser tab and home-screen icons (the panda)
@@ -68,7 +68,7 @@ All per-state colours live as CSS variables under `[data-state="..."]` in `style
 
 - Font: Hanken Grotesk, weights 200 to 500 (loaded from Google Fonts in `index.html`).
 - Glass: 10% white fill, 12px backdrop blur, 1px light border (`--glass-bg`, `--glass-blur`).
-- Grain: `--grain: 0.4` at the top of `styles.css` (tiled noise image `assets/grain.webp`, overlay blend).
+- Grain: part of the page background on `.stage` in `styles.css` (`assets/grain-soft.webp`, 128px tile, `background-blend-mode: overlay`), not a layer on top of the page. A full-screen overlay with `mix-blend-mode` made the browser keep the whole page behind it in extra graphics-memory layers, about half of all GPU memory in measurements. The strength (0.4) is baked into the tile: each pixel is `128 + 0.4 * (pixel of assets/grain.webp - 128)`, which gives the same result as an overlay at opacity 0.4. To change the strength, remake the tile with another factor, e.g. `python3 -c "from PIL import Image; import numpy as np; a=np.array(Image.open('assets/grain.webp').convert('RGB')).astype(float); Image.fromarray(np.clip(np.round(128+0.4*(a-128)),0,255).astype('uint8')).save('assets/grain-soft.webp', lossless=True)"`. Because it is a background, the grain no longer sits over the cards, text and panda (the difference is under 1 level of 255 for 99% of pixels).
 - Headline word: weight 200, size per state (`--band-size`), 60px on phones.
 - Band colours: `--c-good … --c-hazard`, with lighter variants on the dark theme.
 
