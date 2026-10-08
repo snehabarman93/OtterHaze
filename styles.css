@@ -247,7 +247,7 @@ html[data-state="sensitive"] { --amp: 1.5; --rot: 1;   --shake-dur: 1.6s; }
 html[data-state="unhealthy"] { --amp: 2.4; --rot: 1.7; --shake-dur: 1s; }
 html[data-state="very"]      { --amp: 3;   --rot: 2;   --shake-dur: .8s; }
 html[data-state="hazard"]    { --amp: 3.6; --rot: 2.4; --shake-dur: .7s; }
-.panda { animation: shake var(--shake-dur) ease-in-out infinite; transform-origin: 50% 90%; }
+.panda { animation: shake var(--shake-dur) ease-in-out infinite; transform-origin: 50% 90%; will-change: transform; }
 @keyframes shake {
   0%, 100% { transform: translate(0, 0) rotate(0); }
   20% { transform: translate(calc(var(--amp) * -1px), calc(var(--amp) * .4px)) rotate(calc(var(--rot) * -1deg)); }
@@ -449,6 +449,10 @@ html[data-temp="hot"] .fx--sweat *, html[data-temp="hot"] .fx--sweat *::before, 
 
 /* ---- Tab hidden: freeze every animation (set by app.js) ------------------- */
 html.is-hidden *, html.is-hidden *::before, html.is-hidden *::after { animation-play-state: paused !important; }
+
+/* ---- Section scrolled out of view: freeze its animations (set by app.js) -- */
+html.is-off-panda .hero__panda *, html.is-off-panda .hero__panda *::before, html.is-off-panda .hero__panda *::after,
+html.is-off-map .map *, html.is-off-map .map *::before, html.is-off-map .map *::after { animation-play-state: paused !important; }
 
 .num__unit { font-size: 13px; font-weight: 400; letter-spacing: 0; margin-left: 5px; opacity: .7; white-space: nowrap; }
 @media (max-width: 720px) { .num__unit { font-size: 10px; margin-left: 3px; } }

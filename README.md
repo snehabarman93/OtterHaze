@@ -128,6 +128,8 @@ Sweat beads stay inside the panda's face: each pose has a head oval (`--hx --hy 
 
 Strength of the air-quality shake per level is `--amp`, `--rot` and `--shake-dur` in `styles.css`. Everything stops for visitors with "reduce motion" turned on.
 
+Looping animations are also frozen when they cannot be seen, to spare the visitor's CPU and GPU: all of them while the tab is hidden (`is-hidden` on `<html>`), the panda while its section is scrolled out of view (`is-off-panda`), and the map pin pulses while the map is (`is-off-map`). `app.js` sets the classes (IntersectionObserver, 80px margin) and `styles.css` ("Section scrolled out of view") pauses the animations; without IntersectionObserver nothing is paused.
+
 Preview any combination: `index.html?demo=good&aqi=180&psi=250&temp=22`
 
 ## 1-hour PM 2.5 bands (NEA)

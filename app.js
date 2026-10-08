@@ -299,6 +299,20 @@
   document.addEventListener('visibilitychange', syncHidden);
   syncHidden();
 
+  // ---- Pause the animations of a section that is scrolled out of view ------
+  // The panda and the map pins loop forever, so they are frozen (see styles.css) while their
+  // section is off screen, with 80px of margin so they are already moving again when it scrolls in.
+  // Without IntersectionObserver nothing is paused and everything simply keeps running.
+  if ('IntersectionObserver' in window) {
+    [['.hero__panda', 'is-off-panda'], ['.map', 'is-off-map']].forEach(([selector, cls]) => {
+      const el = document.querySelector(selector);
+      if (!el) return;
+      new IntersectionObserver((entries) => {
+        document.documentElement.classList.toggle(cls, !entries[entries.length - 1].isIntersecting);
+      }, { rootMargin: '80px' }).observe(el);
+    });
+  }
+
   // ---- Boot ---------------------------------------------------------------
   // ?demo=<state> shows sample data. Otherwise the page starts empty ("Loading")
   // and data.js fills it from /api/haze. Sample data is never shown as live.
