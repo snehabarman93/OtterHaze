@@ -205,19 +205,30 @@
     </section>
 
     <p class="foot">Data from data.gov.sg (NEA): 1-hour PM 2.5, 24-hour PSI, and temperature, humidity and wind from weather stations across the island. Feels like is calculated from these, not published by NEA.</p>
+    <section class="about" aria-label="About the haze numbers">
+      <details>
+        <summary><h2>What is the PSI?</h2></summary>
+        <p>PSI (Pollutant Standards Index) is Singapore's official 24-hour haze measure from NEA: 0 to 50 is Good, 51 to 100 Moderate, 101 to 200 Unhealthy, 201 to 300 Very unhealthy, and above 300 Hazardous.</p>
+      </details>
+      <details>
+        <summary><h2>What is 1-hour PM2.5?</h2></summary>
+        <p>It shows the fine particles in the air right now, in micrograms per cubic metre. It moves faster than the PSI, so it is the first number to rise when haze arrives. NEA calls it Normal up to 55, Elevated from 56 to 150, High from 151 to 250 and Very High above 250.</p>
+      </details>
+      <details>
+        <summary><h2>What is the AQI on this page?</h2></summary>
+        <p>AQI is the headline colour on this page. It is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300).</p>
+      </details>
+      <details>
+        <summary><h2>Where do the readings come from?</h2></summary>
+        <p>PM2.5, PSI, temperature, humidity and wind come from NEA's open data on data.gov.sg, and the page refreshes hourly. The island is split into North, South, East, West and Central regions, as NEA reports it. Feels-like temperature is calculated here from those readings and is not published by NEA.</p>
+      </details>
+    </section>
+
     <div class="refresh-row"><button type="button" class="btn" id="refresh">Refresh</button></div>
 
     <p class="foot" id="status" role="status"></p>
     <noscript><p class="foot">Live readings need JavaScript turned on. Without it, see the official readings at <a href="https://www.haze.gov.sg/">haze.gov.sg</a>.</p></noscript>
 
-    <section class="about" aria-labelledby="about-h">
-      <h2 id="about-h">What do the haze numbers mean?</h2>
-      <p><b>PSI</b> (Pollutant Standards Index) is Singapore's official 24-hour haze measure from NEA: 0 to 50 is Good, 51 to 100 Moderate, 101 to 200 Unhealthy, 201 to 300 Very unhealthy, and above 300 Hazardous.</p>
-      <p><b>1-hour PM2.5</b> shows the fine particles in the air right now, in micrograms per cubic metre. It moves faster than the PSI, so it is the first number to rise when haze arrives. NEA calls it Normal up to 55, Elevated from 56 to 150, High from 151 to 250 and Very High above 250.</p>
-      <p><b>AQI</b> is the headline colour on this page. It is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300).</p>
-      <h2>Where do the readings come from?</h2>
-      <p>PM2.5, PSI, temperature, humidity and wind come from NEA's open data on data.gov.sg, and the page refreshes hourly. The island is split into North, South, East, West and Central regions, as NEA reports it. Feels-like temperature is calculated here from those readings and is not published by NEA.</p>
-    </section>
 
     <footer class="credit">Built by Considered House (Singapore)</footer>
   </main>
