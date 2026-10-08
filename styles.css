@@ -170,6 +170,17 @@ body { margin: 0; }
 
 .foot { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
 
+/* Plain-language explainer under the readings (also gives search engines real text to index). */
+.about { display: grid; gap: 10px; max-width: 62ch; margin: 8px auto 0; }
+.about h2 { margin: 12px 0 0; font-size: 13px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.about h2:first-child { margin-top: 0; }
+.about p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.about b { font-weight: 500; color: inherit; }
+.foot a { color: inherit; }
+
+/* Text for screen readers and search engines that stays out of the layout. */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
 /* ---- Grain --------------------------------------------------------------- */
 /* Fixed to the viewport (not the full page height) and tiled from a small image,
    so the GPU holds one screen-sized layer instead of a page-sized live filter.
