@@ -8,8 +8,11 @@ styles.css   all visuals, driven by data-state / data-tone / data-pose on <html>
 app.js       band code, render(data), sample data, mascot picker
 data.js      fetches /api/haze, keeps last good values, retries, fills the page
 api/haze.js  Vercel server function: reads NEA's open data and does the sums
-test.html    tester page with sliders (sample data only, not linked from the site)
-assets/      panda-* and otter-* pictures (6 poses each), grain.webp, island.webp (relief map)
+test.html    tester page with sliders (sample data only, not linked from the site, marked noindex)
+assets/      panda-* and otter-* pictures (6 poses each), grain.webp, island.webp (relief map), og.png (1200x630 share picture)
+robots.txt   lets search engines in and points them to the sitemap
+sitemap.xml  lists the one public page
+favicon.ico, favicon-32.png, apple-touch-icon.png   browser tab and home-screen icons (the panda)
 ```
 
 Preview a state: `index.html?demo=good` (or `moderate`, `sensitive`, `unhealthy`, `very`, `hazard`).
@@ -71,7 +74,7 @@ All per-state colours live as CSS variables under `[data-state="..."]` in `style
 
 ## Layout
 
-Nav pill, then a hero (band word, tip, metrics card AQI | 1 hr PM 2.5 (µg/m³) | PSI 24-hour, temperature card Temperature | Feels like, and the panda), then the Island view. At 720px and below: padding shrinks, the "Updated hourly" label hides, map pills hide and the region list under the map appears.
+Nav pill, then a hero (band word, tip, metrics card AQI | 1 hr PM 2.5 (µg/m³) | PSI 24-hour, temperature card Temperature | Feels like, and the panda), then the Island view, then a short "about the numbers" explainer (four native `<details>` dropdown rows in `.about`: PSI, 1-hour PM2.5, AQI, where the readings come from), then the Refresh button. At 720px and below: padding shrinks, the "Updated hourly" label hides, map pills hide and the region list under the map appears.
 
 ## Notes for the integrator
 
@@ -80,6 +83,13 @@ Nav pill, then a hero (band word, tip, metrics card AQI | 1 hr PM 2.5 (µg/m³) 
 - Map pins are positioned in percentages of a 1025×645 image; keep `island.webp` at that aspect ratio.
 - Region tints are an SVG masked by the island image (`.isle-mask`), so they need `assets/island.webp` served from the same origin.
 - If your site is Next.js: put `assets/` in `public/`, port `styles.css` into a global stylesheet, and move the markup into a component. Keep the `data-*` attributes on `<html>` (set them in an effect) since the CSS depends on them.
+
+## Search, sharing and analytics
+
+- `<head>` in `index.html` carries the page title, description, canonical link, Open Graph and Twitter share tags (picture: `assets/og.png`, 1200x630) and one JSON-LD block (WebSite and WebApplication).
+- The site address `https://sghaze.vercel.app/` is written out in full, because these tags need absolute URLs and there is no build step. It appears 8 times in `index.html` (canonical, `og:url`, `og:image`, `twitter:image`, and four times in the JSON-LD), once in `robots.txt` and once in `sitemap.xml`. If the site moves to its own domain, change all 10 (`grep -rn sghaze.vercel.app .` finds them).
+- The page headline is `<h1><span class="sr-only">Singapore haze today: </span><span data-bind="aqiBand">…</span></h1>`; the hidden words are for screen readers and search engines, and only the inner span is filled by `app.js`.
+- Two analytics tags are loaded: Vercel Web Analytics (no cookies; needs Analytics switched on in the Vercel dashboard) and Google Analytics 4 (`gtag.js`, at the very top of `<head>`). Google Analytics uses cookies by default and the site has no consent banner yet.
 
 ## Live data
 
