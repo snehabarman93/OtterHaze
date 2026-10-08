@@ -12,8 +12,51 @@
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Haze Watch SG</title>
-<meta name="description" content="Live air quality (AQI, 1 hr PM 2.5, PSI), temperature and feels-like for Singapore, from NEA data.">
+<title>Singapore Haze Today: Live PSI, PM2.5 &amp; AQI | Haze Watch SG</title>
+<meta name="description" content="Singapore haze right now: 24-hour PSI, 1-hour PM2.5 and AQI for North, South, East, West and Central, plus temperature. NEA data, updated hourly.">
+<link rel="canonical" href="https://sghaze.vercel.app/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Haze Watch SG">
+<meta property="og:locale" content="en_SG">
+<meta property="og:url" content="https://sghaze.vercel.app/">
+<meta property="og:title" content="Singapore Haze Today: Live PSI, PM2.5 &amp; AQI">
+<meta property="og:description" content="Live haze readings for every region of Singapore, from NEA data. Updated hourly.">
+<meta property="og:image" content="https://sghaze.vercel.app/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Relief map of Singapore with the title Haze Watch SG">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Singapore Haze Today: Live PSI, PM2.5 &amp; AQI">
+<meta name="twitter:description" content="Live haze readings for every region of Singapore, from NEA data. Updated hourly.">
+<meta name="twitter:image" content="https://sghaze.vercel.app/assets/og.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://sghaze.vercel.app/#website",
+      "url": "https://sghaze.vercel.app/",
+      "name": "Haze Watch SG",
+      "inLanguage": "en-SG",
+      "description": "Live haze, PSI, PM2.5 and AQI readings for Singapore."
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://sghaze.vercel.app/#app",
+      "name": "Haze Watch SG",
+      "url": "https://sghaze.vercel.app/",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any (web browser)",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "SGD" },
+      "areaServed": { "@type": "Country", "name": "Singapore" },
+      "creator": { "@type": "Organization", "name": "Considered House" }
+    }
+  ]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@200;300;400;500&amp;display=swap">
@@ -46,7 +89,7 @@
     <section class="hero">
       <div class="hero__text">
         <div class="eyebrow"><span class="dot dot--state"></span>Singapore right now</div>
-        <h1 class="bandword" data-bind="aqiBand">Loading</h1>
+        <h1 class="bandword"><span class="sr-only">Singapore haze today: </span><span data-bind="aqiBand">Loading</span></h1>
         <p class="tip" data-bind="tip"></p>
 
         <div class="cards">
@@ -123,7 +166,7 @@
       </div>
 
       <div class="map">
-        <img class="map__img" src="assets/island.webp" alt="Relief map of Singapore, tinted by haze level in each of five regions">
+        <img class="map__img" loading="lazy" decoding="async" src="assets/island.webp" alt="Relief map of Singapore, tinted by haze level in each of five regions">
         <div class="isle-mask" aria-hidden="true">
           <svg viewBox="0 0 1025 645" width="100%" height="100%">
             <path class="zone" data-zone="west" d="M0 0H332V645H0Z"/>
@@ -162,10 +205,30 @@
     </section>
 
     <p class="foot">Data from data.gov.sg (NEA): 1-hour PM 2.5, 24-hour PSI, and temperature, humidity and wind from weather stations across the island. Feels like is calculated from these, not published by NEA.</p>
+    <section class="about" aria-label="About the haze numbers">
+      <details>
+        <summary><h2>What is the PSI?</h2></summary>
+        <p>PSI (Pollutant Standards Index) is Singapore's official 24-hour haze measure from NEA: 0 to 50 is Good, 51 to 100 Moderate, 101 to 200 Unhealthy, 201 to 300 Very unhealthy, and above 300 Hazardous.</p>
+      </details>
+      <details>
+        <summary><h2>What is 1-hour PM2.5?</h2></summary>
+        <p>It shows the fine particles in the air right now, in micrograms per cubic metre. It moves faster than the PSI, so it is the first number to rise when haze arrives. NEA calls it Normal up to 55, Elevated from 56 to 150, High from 151 to 250 and Very High above 250.</p>
+      </details>
+      <details>
+        <summary><h2>What is the AQI on this page?</h2></summary>
+        <p>AQI is the headline colour on this page. It is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300).</p>
+      </details>
+      <details>
+        <summary><h2>Where do the readings come from?</h2></summary>
+        <p>PM2.5, PSI, temperature, humidity and wind come from NEA's open data on data.gov.sg, and the page refreshes hourly. The island is split into North, South, East, West and Central regions, as NEA reports it. Feels-like temperature is calculated here from those readings and is not published by NEA.</p>
+      </details>
+    </section>
+
     <div class="refresh-row"><button type="button" class="btn" id="refresh">Refresh</button></div>
 
     <p class="foot" id="status" role="status"></p>
-    <noscript><p class="foot">Live readings need JavaScript turned on.</p></noscript>
+    <noscript><p class="foot">Live readings need JavaScript turned on. Without it, see the official readings at <a href="https://www.haze.gov.sg/">haze.gov.sg</a>.</p></noscript>
+
 
     <footer class="credit">Built by Considered House (Singapore)</footer>
   </main>

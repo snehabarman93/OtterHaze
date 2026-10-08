@@ -170,6 +170,23 @@ body { margin: 0; }
 
 .foot { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
 
+/* Plain-language explainer under the data note: one dropdown row per question (native <details>, no script).
+   The answers stay in the page, so search engines can read them even while closed. */
+.about { margin-top: -18px; border-top: 1px solid var(--hair); }
+.about details { border-bottom: 1px solid var(--hair); }
+.about summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; cursor: pointer; list-style: none; }
+.about summary::-webkit-details-marker { display: none; }
+.about summary h2 { margin: 0; font-size: 17px; font-weight: 500; line-height: 1.35; color: var(--ink); }
+.about summary::after { content: ""; flex: none; width: 9px; height: 9px; margin: 0 6px 4px 0; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; color: var(--ink); transform: rotate(45deg); transition: transform .2s ease, margin .2s ease; }
+.about details[open] summary::after { transform: rotate(-135deg); margin-bottom: -4px; }
+.about summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 6px; }
+.about p { margin: 0; padding: 0 40px 22px 0; font-size: 15px; line-height: 1.65; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .about summary::after { transition: none; } }
+.foot a { color: inherit; }
+
+/* Text for screen readers and search engines that stays out of the layout. */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
 /* ---- Grain --------------------------------------------------------------- */
 /* Fixed to the viewport (not the full page height) and tiled from a small image,
    so the GPU holds one screen-sized layer instead of a page-sized live filter.
