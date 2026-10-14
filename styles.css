@@ -91,9 +91,7 @@ body { margin: 0; }
 /* ---- Hero ---------------------------------------------------------------- */
 .hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 32px; align-items: center; }
 .hero__text { display: flex; flex-direction: column; gap: 22px; }
-.eyebrow { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 .dot { flex: none; display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
-.dot--state { width: 10px; height: 10px; background: var(--state-color); }
 .bandword { margin: 0; font-weight: 200; font-size: var(--band-size); line-height: 0.98; letter-spacing: -0.045em; }
 .tip { margin: 0; max-width: 440px; font-size: 19px; line-height: 1.5; font-weight: 300; text-wrap: pretty; }
 
@@ -205,9 +203,8 @@ body { margin: 0; }
   .btn { padding: 0 16px; }
   /* Phone: headline + tip on the left, panda on the right, both cards underneath,
      so the panda and every reading fit on the first screen. */
-  .hero { grid-template-columns: minmax(0, 1fr) 160px; grid-template-areas: "eyebrow panda" "band panda" "tip panda" "cards cards"; column-gap: 4px; row-gap: 10px; align-items: start; }
+  .hero { grid-template-columns: minmax(0, 1fr) 160px; grid-template-areas: "band panda" "tip panda" "cards cards"; column-gap: 4px; row-gap: 10px; align-items: start; }
   .hero__text { display: contents; }
-  .eyebrow { grid-area: eyebrow; font-size: 11px; letter-spacing: 0.12em; padding-top: 6px; }
   .bandword { grid-area: band; font-size: min(9.8vw, 42px); align-self: end; }
   .tip { grid-area: tip; font-size: 14px; line-height: 1.45; max-width: none; }
   .cards { grid-area: cards; gap: 10px; margin-top: 4px; }
