@@ -107,6 +107,7 @@
               <div class="label">PSI 24-hour</div>
               <div class="num" data-bind="psi">–</div>
               <div class="sub"><span class="dot" data-band-for="psi"></span><span data-bind="psiBand">–</span></div>
+              <div class="sub sub--est" title="Worked out from the 1-hour PM 2.5 with NEA's own PSI formula. An estimate, not an official reading.">Now ≈ <b data-bind="psiNow">–</b> <span class="est__tag">est.</span></div>
             </div>
           </div>
 
@@ -203,6 +204,27 @@
       <ul class="pinlist" id="pinlist"></ul>
     </section>
 
+    <section class="glass isle std" aria-labelledby="stdTitle">
+      <div class="isle__head">
+        <div>
+          <h2 id="stdTitle">Other standards</h2>
+          <p class="isle__sub">The same air, read on different scales. Numbers from different countries are not interchangeable.</p>
+        </div>
+        <label class="std__pick"><span class="label">Show</span>
+          <select id="stdRegion" aria-controls="stdList">
+            <option value="island">Island average</option>
+            <option value="north">North</option>
+            <option value="south">South</option>
+            <option value="east">East</option>
+            <option value="west">West</option>
+            <option value="central">Central</option>
+          </select>
+        </label>
+      </div>
+      <ul class="std__list" id="stdList" aria-live="polite"></ul>
+      <p class="std__note">Calculated here from NEA's 1-hour PM 2.5. These scales are defined on 24-hour averages, so everything marked "hourly" is an early estimate, not an official reading. The WHO figure is a guideline level, not an index.</p>
+    </section>
+
     <p class="foot">Data from data.gov.sg (NEA): 1-hour PM 2.5, 24-hour PSI, and temperature, humidity and wind from weather stations across the island. Feels like is calculated from these, not published by NEA.</p>
     <section class="about" aria-label="About the haze numbers">
       <details>
@@ -214,8 +236,12 @@
         <p>It shows the fine particles in the air right now, in micrograms per cubic metre. It moves faster than the PSI, so it is the first number to rise when haze arrives. NEA calls it Normal up to 55, Elevated from 56 to 150, High from 151 to 250 and Very High above 250.</p>
       </details>
       <details>
+        <summary><h2>What is "Now ≈" under the PSI?</h2></summary>
+        <p>The official PSI is a 24-hour average, so it is slow to rise when haze arrives and slow to clear. "Now ≈" applies NEA's own PSI formula to the latest 1-hour PM2.5 instead. It reacts sooner, but it is an estimate: the official PSI also weighs other pollutants and averages over a full day, so it can differ from NEA's number.</p>
+      </details>
+      <details>
         <summary><h2>What is the AQI on this page?</h2></summary>
-        <p>AQI is the headline colour on this page. It is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300).</p>
+        <p>AQI is the headline colour on this page. It is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300). It is worked out from the 1-hour PM 2.5 to match NEA's Haze@SG app: up to 55 µg/m³ it follows the earlier US EPA table, and above that it follows a straight line fitted to the app's readings. It is not NEA's PSI, and it is not today's stricter US EPA scale; compare both under "Other standards".</p>
       </details>
       <details>
         <summary><h2>Where do the readings come from?</h2></summary>
@@ -232,6 +258,7 @@
     <footer class="credit">Built by Considered House (Singapore)</footer>
   </main>
 </div>
+<script src="standards.js"></script>
 <script src="app.js"></script>
 <script src="data.js"></script>
 </body>

@@ -98,6 +98,14 @@ Nav pill, then a hero (band word, tip, metrics card AQI | 1 hr PM 2.5 (µg/m³) 
 - A single missing number shows as an en dash; a region with no readings at all says "No data". Air data more than 2 hours old, or old readings kept because a refresh failed, shows "Delayed" in the top bar with a note at the bottom. If the page has never had an answer it says "Air data unavailable" and tries again after 45 seconds (up to 4 times); sample data only appears with `?demo=good|moderate|sensitive|unhealthy|very|hazard`.
 - NEA does not publish "feels like", so it is calculated. Other apps use other formulas and may differ by 1-3 °C. The formula is the single `feelsLike` function in `api/haze.js`.
 
+## Hourly PSI estimate and other standards
+
+- `standards.js` holds the PM2.5 breakpoint tables (NEA PSI, US EPA 2024, India NAQI) and one `convert(scale, pm25)` function. It also loads in Node, so the maths can be tested with `require('./standards.js')`.
+- **Hourly PSI estimate** ("Now ≈ N est." under the PSI): NEA's PM2.5 sub-index formula applied to the latest 1-hour PM2.5, so it moves sooner than the official 24-hour PSI. It is an estimate: the official PSI is a 24-hour average and also weighs other pollutants. Check value from NEA's document: 40 µg/m³ gives PSI 83.
+- **Other standards** section (below the island map): the same reading on NEA PSI (24-hour and hourly estimate), the page's own AQI, US EPA AQI (2024 breakpoints), India NAQI and the WHO 24-hour guideline (a ratio, not an index), for the island average or any one region. All of these scales are defined on 24-hour averages, so they are labelled as estimates when worked out from the 1-hour reading.
+- The headline AQI, panda and map colours are unchanged. That AQI is matched to NEA's Haze@SG app (earlier US EPA table up to 55 µg/m³, then a fitted line), see `toAqi` in `api/haze.js`.
+- To add a scale: add an entry to `SCALES` in `standards.js` and one `addScale(...)` line in `stdRows()` in `app.js`.
+
 ## Pandas
 
 Six static pictures in `assets/` (transparent, about 30 KB each). All movement is done in code (`styles.css`, "Panda" sections at the bottom).

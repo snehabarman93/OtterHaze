@@ -124,6 +124,81 @@
   const EMPTY = { aqi: null, pm25: null, psi: null, temp: null, feels: null, regions: {} };
   const REGIONS = ['north', 'east', 'west', 'south', 'central'];
 
+  // ---- Other scales (see standards.js) -------------------------------------
+  // Island-wide number on one scale = average of the regions' numbers, needing at least 3 of 5
+  // (the same rule api/haze.js uses for AQI and PSI).
+  const STD = window.HazeStandards;
+  function islandOf(scaleKey, regionsIn) {
+    if (!STD) return null;
+    const v = REGIONS.map((r) => { const c = STD.convert(scaleKey, (regionsIn[r] || {}).pm25); return c ? c.value : null; }).filter(has);
+    return v.length >= 3 ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null;
+  }
+  let lastData = null, stdRegion = 'island';
+  const BAND_KEYS = ['good', 'moderate', 'sensitive', 'unhealthy', 'very', 'hazard'];
+
+  function stdRows(data, region) {
+    const regionsIn = (data && data.regions) || {};
+    const one = region !== 'island';
+    const r = one ? (regionsIn[region] || {}) : null;
+    const pm = one ? r.pm25 : data && data.pm25;
+    const rows = [];
+    const addScale = (key, title, note) => {
+      const value = one ? (STD.convert(key, pm) || {}).value : islandOf(key, regionsIn);
+      const b = has(value) ? (one ? STD.convert(key, pm) : STD.bandOfIndex(key, value)) : null;
+      rows.push({ title, note, value, band: b && b.band, label: b && b.label });
+    };
+    // 1. NEA PSI, official 24-hour
+    const psi = one ? r.psi : data && data.psi;
+    const pb = has(psi) ? bandOf(PSI_BANDS, psi) : null;
+    rows.push({ title: 'NEA PSI, 24-hour', note: 'Official, Singapore', value: psi, band: pb && key(pb), label: pb && pb.name });
+    // 2. NEA PSI, hourly estimate
+    addScale('psi', 'NEA PSI, hourly estimate', 'NEA formula on 1-hour PM 2.5');
+    // 3. The page's own AQI
+    const aqi = one ? r.aqi : data && data.aqi;
+    const ab = has(aqi) ? bandOf(AQI_BANDS, aqi) : null;
+    rows.push({ title: 'AQI on this page', note: "Matched to NEA's Haze@SG app", value: aqi, band: ab && key(ab), label: ab && ab.name });
+    // 4. US EPA 2024, 5. India
+    addScale('epa', 'US EPA AQI (2024)', 'Stricter; in force since May 2024');
+    addScale('india', 'India NAQI', 'More lenient at low levels');
+    // 6. WHO guideline level (not an index)
+    if (has(pm)) {
+      const x = pm / STD.WHO_24H_PM25;
+      rows.push({ title: 'WHO 24-hour guideline', note: 'Guideline level of ' + STD.WHO_24H_PM25 + ' µg/m³, not an index',
+        value: (Math.round(x * 10) / 10).toFixed(1) + '×', band: x <= 1 ? 'good' : x <= 2.5 ? 'moderate' : x <= 5 ? 'unhealthy' : 'very', label: x <= 1 ? 'Within guideline' : 'Above guideline' });
+    } else rows.push({ title: 'WHO 24-hour guideline', note: 'Guideline level of ' + STD.WHO_24H_PM25 + ' µg/m³, not an index', value: null });
+    return rows;
+  }
+
+  function renderStandards(data) {
+    const list = document.getElementById('stdList');
+    if (!list || !STD) return;
+    lastData = data;
+    list.textContent = '';
+    stdRows(data, stdRegion).forEach((row) => {
+      const li = document.createElement('li');
+      const left = document.createElement('div');
+      left.className = 'std__what';
+      const t = document.createElement('b'); t.textContent = row.title;
+      const n = document.createElement('small'); n.textContent = row.note;
+      left.appendChild(t); left.appendChild(n);
+      const right = document.createElement('div');
+      right.className = 'std__val';
+      const num = document.createElement('span'); num.className = 'std__num'; num.textContent = typeof row.value === 'string' ? row.value : dash(row.value);
+      right.appendChild(num);
+      if (row.band) {
+        const d = document.createElement('span'); d.className = 'dot'; d.dataset.band = row.band;
+        const l = document.createElement('span'); l.className = 'std__band'; l.textContent = row.label;
+        right.appendChild(d); right.appendChild(l);
+      }
+      li.appendChild(left); li.appendChild(right);
+      list.appendChild(li);
+    });
+  }
+  (function () {
+    const sel = document.getElementById('stdRegion');
+    if (sel) sel.addEventListener('change', () => { stdRegion = sel.value; renderStandards(lastData || EMPTY); });
+  })();
+
   function showPose(pose) {
     // Load only the picture being shown (all of them together are a few MB)
     $$('.pose').forEach((img) => {
@@ -214,6 +289,8 @@
     setText('psi', dash(data.psi));
     setText('temp', deg(data.temp));
     setText('feels', deg(data.feels));
+    // Hourly PSI estimate: NEA's PSI formula applied to the 1-hour PM2.5 (see standards.js)
+    setText('psiNow', dash(islandOf('psi', regionsIn)));
     setText('psiBand', psiBand ? psiBand.name : '\u2013');
     setText('pm25Band', pmBand ? pmBand.name : '\u2013');
     setText('tempNote', opts.tempNote || (has(data.temp) ? 'Right now' : 'Unavailable'));
@@ -273,6 +350,7 @@
       });
       list.appendChild(li);
     });
+    renderStandards(data);
   }
 
   // ---- Sample data (one per state) ---------------------------------------
