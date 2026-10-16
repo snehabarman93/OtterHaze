@@ -128,16 +128,26 @@
   // The dropdown at the bottom changes which scale the "AQI" number, the headline word, the panda,
   // the map colours and the region numbers use. Everything else (PM 2.5, official PSI, weather) stays.
   const STD = window.HazeStandards;
+  // `field`: a number the page already has (NEA's official PSI, or the page's own AQI).
+  // `scale`: a number worked out here from the 1-hour PM 2.5 (see standards.js).
+  const DEFAULT_CHOICE = 'nea';   // what a first-time visitor sees: NEA's own 24-hour PSI
   const CHOICES = {
-    default: { label: 'AQI', short: 'AQI', name: 'AQI',
-      note: "The AQI formula is matched to NEA's Haze@SG app. The island-wide number is the highest of the five regions." },
+    nea: { field: 'psi', label: 'PSI 24-hour', short: 'PSI', name: 'NEA PSI, 24-hour',
+      regionLine: '1 hr PM 2.5 (\u00b5g/m\u00b3) and 24-hour PSI by region.',
+      note: "NEA's official 24-hour PSI." },
+    aqi: { field: 'aqi', label: 'AQI', short: 'AQI', name: 'AQI',
+      regionLine: 'AQI, 1 hr PM 2.5 (\u00b5g/m\u00b3) and 24-hour PSI by region.',
+      note: "The AQI formula is matched to NEA's Haze@SG app. The island-wide number is the highest of the five regions. It is not the PSI." },
     psi: { scale: 'psi', label: 'PSI est.', short: 'PSI est.', name: 'NEA PSI, hourly estimate',
+      regionLine: 'Hourly PSI estimate, 1 hr PM 2.5 (\u00b5g/m\u00b3) and 24-hour PSI by region.',
       note: "NEA's PSI formula applied to the latest 1-hour PM 2.5. An estimate, not an official reading." },
     epa: { scale: 'epa', label: 'US EPA AQI', short: 'EPA AQI', name: 'US EPA AQI (2024)',
+      regionLine: 'US EPA AQI, 1 hr PM 2.5 (\u00b5g/m\u00b3) and 24-hour PSI by region.',
       note: "US EPA's 2024 scale, worked out from the 1-hour PM 2.5. It is stricter than the PSI." }
   };
-  let choiceKey = 'default', lastData = null, lastOpts = null, legendFor = null;
-  // Island-wide number on one scale = the highest of the regions' numbers, needing at least 3 of 5
+  const STD_KEY = 'hazewatch.standard';   // remembered in the visitor's browser, like the mascot
+  let choiceKey = DEFAULT_CHOICE, lastData = null, lastOpts = null, legendFor = null;
+  // Island-wide number on one scale = highest of the regions' numbers, needing at least 3 of 5
   // (the same rule api/haze.js uses for AQI, PM2.5 and PSI).
   function islandOf(scaleKey, regionsIn) {
     if (!STD) return null;
@@ -147,7 +157,7 @@
   // Number for a region (or the whole island) on the chosen scale
   function valueOn(ch, data, regionName) {
     const regionsIn = data.regions || {};
-    if (!ch.scale) return regionName ? (regionsIn[regionName] || {}).aqi : data.aqi;
+    if (ch.field) return regionName ? (regionsIn[regionName] || {})[ch.field] : data[ch.field];
     if (!STD) return null;
     if (regionName) { const c = STD.convert(ch.scale, (regionsIn[regionName] || {}).pm25); return c ? c.value : null; }
     return islandOf(ch.scale, regionsIn);
@@ -155,7 +165,7 @@
   // { key, name } of the band a number falls in on the chosen scale, or null
   function bandInfo(ch, v) {
     if (!has(v)) return null;
-    if (!ch.scale) { const b = bandOf(AQI_BANDS, v); return { key: key(b), name: b.name }; }
+    if (ch.field) { const b = bandOf(ch.field === 'psi' ? PSI_BANDS : AQI_BANDS, v); return { key: key(b), name: b.name }; }
     const b = STD && STD.bandOfIndex(ch.scale, v);
     return b ? { key: b.band, name: b.label } : null;
   }
@@ -165,7 +175,7 @@
     legendFor = choiceName;
     const host = $('#legend');
     if (!host) return;
-    const items = !ch.scale ? AQI_BANDS.map((b) => ({ key: key(b), name: b.name }))
+    const items = ch.field ? (ch.field === 'psi' ? PSI_BANDS : AQI_BANDS).map((b) => ({ key: key(b), name: b.name }))
       : STD.SCALES[ch.scale].segs.map((x) => ({ key: x[4], name: x[5] }))
           .filter((it, i, a) => a.findIndex((o) => o.key === it.key) === i);
     host.textContent = '';
@@ -177,16 +187,19 @@
       host.appendChild(li);
     });
   }
-  function setChoice(name) {
-    if (!CHOICES[name] || (name !== 'default' && !STD)) name = 'default';
+  const usable = (name) => !!CHOICES[name] && (!CHOICES[name].scale || !!STD);
+  function setChoice(name, remember) {
+    if (!usable(name)) name = DEFAULT_CHOICE;
     choiceKey = name;
+    document.documentElement.dataset.std = name;   // lets styles.css hide the duplicate PSI column in the NEA view
     const sel = document.getElementById('stdChoice');
     if (sel) sel.value = name;
+    if (remember) { try { localStorage.setItem(STD_KEY, name); } catch (e) { /* private mode: fine */ } }
     if (lastData) render(lastData, lastOpts);
   }
   (function () {
     const sel = document.getElementById('stdChoice');
-    if (sel) sel.addEventListener('change', () => setChoice(sel.value));
+    if (sel) sel.addEventListener('change', () => setChoice(sel.value, true));
   })();
 
   function showPose(pose) {
@@ -262,7 +275,7 @@
       const st = STATE[stateKey];
       root.dataset.state = stateKey;
       root.dataset.tone = st.theme;
-      const pose = poseFor(aqiVal, ch.scale ? null : data.psi); // official PSI only nudges the default view
+      const pose = poseFor(aqiVal, ch.field === 'aqi' ? data.psi : null); // official PSI only nudges the AQI view
       root.dataset.pose = pose;
       setText('aqiBand', aqiBand.name);
       setText('tip', st.tip);
@@ -282,6 +295,7 @@
     setText('aqiShort', ch.short);
     setText('scaleName', ch.name);
     setText('stdNote', ch.note);
+    setText('regionLine', ch.regionLine);
     buildLegend(ch, choiceKey);
     setText('pm25', dash(data.pm25));
     setText('psi', dash(data.psi));
@@ -342,7 +356,7 @@
         list.appendChild(li);
         return;
       }
-      [[ch.short, rv], ['PM 2.5', r.pm25], ['PSI', r.psi]].forEach((s) => {
+      [[ch.short, rv], ['PM 2.5', r.pm25]].concat(ch.field === 'psi' ? [] : [['PSI', r.psi]]).forEach((s) => {
         const d = document.createElement('div');
         d.className = 's';
         d.innerHTML = '<b>' + dash(s[1]) + '</b><small>' + s[0] + '</small>';
@@ -422,7 +436,10 @@
   try { saved = localStorage.getItem('hazewatch.mascot'); } catch (e) { /* ignore */ }
   buildPicker();
   setMascot(MASCOTS[params.get('mascot')] ? params.get('mascot') : MASCOTS[saved] ? saved : DEFAULT_MASCOT, false);
-  if (CHOICES[params.get('standard')] && (params.get('standard') === 'default' || STD)) { choiceKey = params.get('standard'); const sel = document.getElementById('stdChoice'); if (sel) sel.value = choiceKey; }
+  // Standard: ?standard=epa wins (for sharing), then what the visitor chose last time, then NEA's PSI
+  let savedStd = null;
+  try { savedStd = localStorage.getItem(STD_KEY); } catch (e) { /* ignore */ }
+  setChoice(usable(params.get('standard')) ? params.get('standard') : usable(savedStd) ? savedStd : DEFAULT_CHOICE, false);
   const demoKey = params.get('demo');
   if (DEMO[demoKey]) {
     // Optional overrides for previewing, e.g. ?demo=good&aqi=180&psi=250&temp=22&feels=24

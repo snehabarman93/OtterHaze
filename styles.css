@@ -491,3 +491,9 @@ html.is-resting .ping, html.is-resting .fx i, html.is-resting .fx b, html.is-res
 .std__pick select:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .std__note:empty { display: none; }
 @media (max-width: 720px) { .std__pick { width: 100%; } .std__pick select { flex: 1 1 auto; } }
+
+/* NEA view: the first column already is the 24-hour PSI, so the PSI column and region PSI values are not repeated */
+.sub--est-first { display: none; }
+html[data-std="nea"] .sub--est-first { display: flex; }
+html[data-std="nea"] .col--psi { display: none; }
+html[data-std="nea"] .pill__vals > div:nth-child(3) { display: none; }

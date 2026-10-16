@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-state="moderate" data-tone="light" data-pose="moderate">
+<html lang="en" data-state="moderate" data-tone="light" data-pose="moderate" data-std="nea">
 <head>
 <meta charset="utf-8">
 <!-- Google Analytics, served through our own domain (see vercel.json rewrites) so fewer visits are lost to blockers and in-app browsers -->
@@ -93,16 +93,17 @@
         <div class="cards">
           <div class="glass card">
             <div class="col">
-              <div class="label" data-bind="aqiLabel">AQI</div>
+              <div class="label" data-bind="aqiLabel">PSI 24-hour</div>
               <div class="num" data-bind="aqi">–</div>
               <div class="sub"><span class="dot" data-band-for="aqi"></span><span data-bind="aqiBand">–</span></div>
+              <div class="sub sub--est sub--est-first" title="Worked out from the 1-hour PM 2.5 with NEA's own PSI formula. An estimate, not an official reading.">Now ≈ <b data-bind="psiNow">–</b> <span class="est__tag">est.</span></div>
             </div>
             <div class="col">
               <div class="label">1 hr PM 2.5</div>
               <div class="num"><span data-bind="pm25">–</span><span class="num__unit">µg/m³</span></div>
               <div class="sub"><span class="dot" data-band-for="pm25"></span><span data-bind="pm25Band">–</span></div>
             </div>
-            <div class="col">
+            <div class="col col--psi">
               <div class="label">PSI 24-hour</div>
               <div class="num" data-bind="psi">–</div>
               <div class="sub"><span class="dot" data-band-for="psi"></span><span data-bind="psiBand">–</span></div>
@@ -152,9 +153,9 @@
       <div class="isle__head">
         <div>
           <h2>Island view</h2>
-          <p class="isle__sub"><span data-bind="aqiShort">AQI</span>, 1 hr PM 2.5 (µg/m³) and 24-hour PSI by region. Colours show <span data-bind="scaleName">AQI</span>.</p>
+          <p class="isle__sub"><span data-bind="regionLine">1 hr PM 2.5 (µg/m³) and 24-hour PSI by region.</span> Colours show <span data-bind="scaleName">NEA PSI, 24-hour</span>.</p>
         </div>
-        <ul class="legend" id="legend" aria-label="AQI bands">
+        <ul class="legend" id="legend" aria-label="PSI bands">
           <li><span class="dot" data-band="good"></span>Good</li>
           <li><span class="dot" data-band="moderate"></span>Moderate</li>
           <li><span class="dot" data-band="sensitive"></span>Sensitive groups</li>
@@ -179,23 +180,23 @@
 
         <div class="pin pin--north" data-region="north" style="left:43.12%;top:21.55%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">North</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">North</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">PSI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--east" data-region="east" style="left:64.59%;top:39.38%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">East</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">East</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">PSI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--west" data-region="west" style="left:23.71%;top:39.38%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">West</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">West</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">PSI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--south" data-region="south" style="left:48.98%;top:61.09%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">South</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">South</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">PSI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--central" data-region="central" style="left:47.02%;top:47.91%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">Central</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">Central</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">PSI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
       </div>
 
@@ -218,8 +219,12 @@
         <p>The official PSI is a 24-hour average, so it is slow to rise when haze arrives and slow to clear. "Now ≈" applies NEA's own PSI formula to the latest 1-hour PM2.5 instead. It reacts sooner, but it is an estimate: the official PSI also weighs other pollutants and averages over a full day, so it can differ from NEA's number.</p>
       </details>
       <details>
+        <summary><h2>Why does another haze site show a different number?</h2></summary>
+        <p>There are three common reasons. <b>Which region:</b> the island-wide numbers at the top of this page show the highest of the five regions. A site that averages the regions will show a lower number. <b>Which reading:</b> the official 24-hour PSI changes slowly, while "Now ≈" and sites that work from the 1-hour PM 2.5 move sooner. NEA publishes new readings once an hour, so two sites can also sit an hour apart if one has not picked up the newest reading yet. <b>Which scale:</b> the AQI, the PSI and the US EPA AQI are different scales, so their numbers are not meant to match. The "Standard" menu at the bottom lets you switch this page between them.</p>
+      </details>
+      <details>
         <summary><h2>What is the AQI on this page?</h2></summary>
-        <p>AQI is the headline colour on this page. It is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300). It is worked out from the 1-hour PM 2.5 to match NEA's Haze@SG app: up to 55 µg/m³ it follows the earlier US EPA table, and above that it follows a straight line fitted to the app's readings. The island-wide number is the highest of the five regions, not an average. It is not NEA's PSI, and it is not today's stricter US EPA scale; you can switch the page to the PSI or the current US EPA scale with the "Standard" menu at the bottom.</p>
+        <p>The page opens on NEA's 24-hour PSI. If you pick "AQI" in the Standard menu at the bottom, the headline, colours and panda follow the AQI instead. The AQI is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300). It is worked out from the 1-hour PM 2.5 to match NEA's Haze@SG app: up to 55 µg/m³ it follows the earlier US EPA table, and above that it follows a straight line fitted to the app's readings. The island-wide number is the highest of the five regions, not an average. It is not NEA's PSI, and it is not today's stricter US EPA scale; you can switch the page to the PSI hourly estimate or the current US EPA scale with the "Standard" menu at the bottom, and the page remembers your choice.</p>
       </details>
       <details>
         <summary><h2>Where do the readings come from?</h2></summary>
@@ -230,7 +235,8 @@
     <div class="refresh-row">
       <label class="std__pick"><span class="label">Standard</span>
         <select id="stdChoice">
-          <option value="default">AQI (as shown by Haze@SG)</option>
+          <option value="nea">NEA PSI, 24-hour (default)</option>
+          <option value="aqi">AQI (as shown by Haze@SG)</option>
           <option value="psi">NEA PSI, hourly estimate</option>
           <option value="epa">US EPA AQI (2024)</option>
         </select>
