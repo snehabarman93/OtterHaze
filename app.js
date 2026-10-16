@@ -3,7 +3,7 @@
    Feed the page with:   HazeWatch.render(data)
 
    data = {
-     aqi:   75,            // island-wide AQI (average of the five regions)
+     aqi:   75,            // island-wide AQI (highest of the five regions)
      pm25:  24,            // island-wide PM2.5, ug/m3, hourly
      psi:   52,            // island-wide 24-hour PSI
      temp:  31,            // air temperature, C
@@ -130,19 +130,19 @@
   const STD = window.HazeStandards;
   const CHOICES = {
     default: { label: 'AQI', short: 'AQI', name: 'AQI',
-      note: "The AQI shown here is matched to NEA's Haze@SG app." },
+      note: "The AQI formula is matched to NEA's Haze@SG app. The island-wide number is the highest of the five regions." },
     psi: { scale: 'psi', label: 'PSI, hourly est.', short: 'PSI est.', name: 'NEA PSI, hourly estimate',
       note: "NEA's PSI formula applied to the latest 1-hour PM 2.5. An estimate, not an official reading." },
     epa: { scale: 'epa', label: 'US EPA AQI', short: 'EPA AQI', name: 'US EPA AQI (2024)',
       note: "US EPA's 2024 scale, worked out from the 1-hour PM 2.5. It is stricter than the PSI." }
   };
   let choiceKey = 'default', lastData = null, lastOpts = null, legendFor = null;
-  // Island-wide number on one scale = average of the regions' numbers, needing at least 3 of 5
-  // (the same rule api/haze.js uses for AQI and PSI).
+  // Island-wide number on one scale = the highest of the regions' numbers, needing at least 3 of 5
+  // (the same rule api/haze.js uses for AQI, PM2.5 and PSI).
   function islandOf(scaleKey, regionsIn) {
     if (!STD) return null;
     const v = REGIONS.map((r) => { const c = STD.convert(scaleKey, (regionsIn[r] || {}).pm25); return c ? c.value : null; }).filter(has);
-    return v.length >= 3 ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null;
+    return v.length >= 3 ? Math.round(Math.max(...v)) : null;
   }
   // Number for a region (or the whole island) on the chosen scale
   function valueOn(ch, data, regionName) {
