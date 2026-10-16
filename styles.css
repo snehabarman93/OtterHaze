@@ -210,9 +210,10 @@ body { margin: 0; }
   .btn { padding: 0 16px; }
   /* Phone: headline + tip on the left, panda on the right, both cards underneath,
      so the panda and every reading fit on the first screen. */
-  .hero { grid-template-columns: minmax(0, 1fr) 160px; grid-template-areas: "band panda" "tip panda" "toggle toggle" "cards cards"; column-gap: 4px; row-gap: 10px; align-items: start; }
+  .hero { grid-template-columns: minmax(0, 1fr) 160px; grid-template-areas: "band panda" "tip panda" "toggle panda" "cards cards"; column-gap: 4px; row-gap: 10px; align-items: start; }
   .hero__text { display: contents; }
-  .std-toggle { grid-area: toggle; justify-self: end; margin: 0; }
+  .std-toggle { grid-area: toggle; justify-self: start; margin: 0; padding: 2px; gap: 2px; }
+  .std-toggle button { min-width: 52px; height: 32px; padding: 0 12px; font-size: 12px; }
   .bandword { grid-area: band; font-size: min(9.8vw, 42px); align-self: end; }
   .tip { grid-area: tip; font-size: 14px; line-height: 1.45; max-width: none; }
   .cards { grid-area: cards; gap: 10px; margin-top: 4px; }
