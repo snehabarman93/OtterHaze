@@ -12,7 +12,7 @@
     var open = form.hidden;
     form.hidden = !open;
     toggle.setAttribute('aria-expanded', String(open));
-    if (open) form.querySelector('input[name="name"]').focus();
+    if (open) form.querySelector('textarea[name="message"]').focus();
   });
 
   form.addEventListener('submit', function (e) {
