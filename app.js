@@ -131,7 +131,7 @@
   const CHOICES = {
     default: { label: 'AQI', short: 'AQI', name: 'AQI',
       note: "The AQI formula is matched to NEA's Haze@SG app. The island-wide number is the highest of the five regions." },
-    psi: { scale: 'psi', label: 'PSI, hourly est.', short: 'PSI est.', name: 'NEA PSI, hourly estimate',
+    psi: { scale: 'psi', label: 'PSI est.', short: 'PSI est.', name: 'NEA PSI, hourly estimate',
       note: "NEA's PSI formula applied to the latest 1-hour PM 2.5. An estimate, not an official reading." },
     epa: { scale: 'epa', label: 'US EPA AQI', short: 'EPA AQI', name: 'US EPA AQI (2024)',
       note: "US EPA's 2024 scale, worked out from the 1-hour PM 2.5. It is stricter than the PSI." }
