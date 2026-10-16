@@ -487,7 +487,8 @@ html.is-resting .ping, html.is-resting .fx i, html.is-resting .fx b, html.is-res
 /* ---- Standard picker (bottom of the page) ----------------------------------- */
 .refresh-row { flex-wrap: wrap; align-items: center; gap: 12px 16px; }
 .std__pick { display: flex; align-items: center; gap: 10px; }
-.std__pick select { height: 44px; max-width: 100%; padding: 0 16px; border-radius: 999px; border: 1px solid var(--hair); background-color: var(--glass-bg); color: var(--ink); font: 500 14px var(--font); cursor: pointer; }
+.std__pick select { -webkit-appearance: none; appearance: none; height: 44px; max-width: 100%; padding: 0 44px 0 20px; border-radius: 999px; border: 1px solid var(--hair); background-color: var(--glass-bg); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%23999' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 18px center; background-size: 12px 8px; color: var(--ink); font: 500 14px var(--font); line-height: 1.2; text-overflow: ellipsis; cursor: pointer; }
+.std__pick select option { color: #1C1B19; background: #fff; }
 .std__pick select:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .std__note:empty { display: none; }
 @media (max-width: 720px) { .std__pick { width: 100%; } .std__pick select { flex: 1 1 auto; } }
