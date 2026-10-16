@@ -86,11 +86,15 @@
   // ---- Which panda to show -------------------------------------------------
   // From mildest to worst. AQI picks the panda; a very high PSI can push it further.
   const POSES = ['good', 'moderate', 'mask', 'cough', 'oxygen', 'passout'];
-  //   AQI  0-50 happy | 51-100 worried | 101-125 mask | 126-150 coughing | 151-200 oxygen mask | 201+ passed out
-  //   PSI  over 200 = at least oxygen mask | over 300 = passed out
-  function poseFor(aqi, psi) {
-    let p = aqi > 200 ? 5 : aqi > 150 ? 4 : aqi > 125 ? 3 : aqi > 100 ? 2 : aqi > 50 ? 1 : 0;
-    if (has(psi)) p = Math.max(p, psi > 300 ? 5 : psi > 200 ? 4 : 0);
+  // The panda follows the number in the headline, on the scale the visitor chose.
+  //   PSI (NEA bands: 0-100 Good to Moderate | 101-200 Unhealthy | 201-300 Very unhealthy | 301+ Hazardous)
+  //     0-50 happy | 51-100 worried | 101-150 mask | 151-200 coughing | 201-300 oxygen mask | 301+ passed out
+  //   AQI (Haze@SG and US EPA)
+  //     0-50 happy | 51-100 worried | 101-125 mask | 126-150 coughing | 151-200 oxygen mask | 201+ passed out
+  function poseFor(value, isPsi) {
+    const p = isPsi
+      ? (value > 300 ? 5 : value > 200 ? 4 : value > 150 ? 3 : value > 100 ? 2 : value > 50 ? 1 : 0)
+      : (value > 200 ? 5 : value > 150 ? 4 : value > 125 ? 3 : value > 100 ? 2 : value > 50 ? 1 : 0);
     return POSES[p];
   }
 
@@ -275,7 +279,7 @@
       const st = STATE[stateKey];
       root.dataset.state = stateKey;
       root.dataset.tone = st.theme;
-      const pose = poseFor(aqiVal, ch.field === 'aqi' ? data.psi : null); // official PSI only nudges the AQI view
+      const pose = poseFor(aqiVal, ch.scale === 'psi'); // PSI estimate uses NEA's PSI bands, the AQI views use AQI bands
       root.dataset.pose = pose;
       setText('aqiBand', aqiBand.name);
       setText('tip', st.tip);
