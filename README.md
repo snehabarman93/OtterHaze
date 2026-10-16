@@ -57,9 +57,9 @@ The page state comes from the AQI band (`AQI_BANDS` in `app.js`, six levels usin
 |---|---|---|---|---|
 | Good (≤50) | mint white #EEF4EC | light | happy | 4 |
 | Moderate (≤100) | #DAD9D2 | light | worried | 14 |
-| Sensitive groups (101-150) | #A3A19C | mid | mask, then coughing | 28 |
-| Unhealthy (151-200) | #5A5957 | dark | oxygen mask | 38 |
-| Very unhealthy (201-300) | #3B393B | dark | passed out | 48 |
+| Sensitive groups (101-150) | #A3A19C | mid | mask | 28 |
+| Unhealthy (151-200) | #5A5957 | dark | coughing | 38 |
+| Very unhealthy (201-300) | #3B393B | dark | oxygen mask | 48 |
 | Hazardous (301+) | near black #1E1C1F | dark | passed out | 58 |
 
 All per-state colours live as CSS variables under `[data-state="..."]` in `styles.css`.
@@ -110,18 +110,18 @@ Nav pill, then a hero (band word, tip, metrics card AQI | 1 hr PM 2.5 (µg/m³) 
 
 Six static pictures in `assets/` (transparent, about 30 KB each). All movement is done in code (`styles.css`, "Panda" sections at the bottom).
 
-Which panda shows (AQI picks it; a very high PSI can push it further):
+Which panda shows: it follows the big number in the headline, on whichever standard is chosen in the Standard menu (PSI, AQI as shown by Haze@SG, or US EPA AQI). All three use the same steps, so there is one table:
 
-| AQI | Panda | Extra movement |
+| Number | Panda | Extra movement |
 |---|---|---|
 | 0-50 | happy | gentle bob, sparkles |
 | 51-100 | worried | slow sigh |
-| 101-125 | face mask | small shake, chest heave |
-| 126-150 | coughing in smoke | coughing fits, puffs |
-| 151-200 | oxygen mask | heavy breaths, bubbles |
-| 201+ (or PSI over 300) | passed out | slow shallow breathing |
+| 101-150 | face mask | small shake, chest heave |
+| 151-200 | coughing in smoke | coughing fits, puffs |
+| 201-300 | oxygen mask | heavy breaths, bubbles |
+| 301+ | passed out | slow shallow breathing |
 
-PSI over 200 shows at least the oxygen mask. The thresholds are in `poseFor()` in `app.js`.
+The thresholds are in `poseFor()` in `app.js`. The 24-hour PSI no longer affects the panda.
 
 Temperature effects (air temperature, steps in `TEMP_STEPS` in `app.js`):
 

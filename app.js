@@ -84,13 +84,13 @@
   const assetUrl = (f) => (window.HAZE_ASSET_URLS && window.HAZE_ASSET_URLS[f]) || 'assets/' + f + '.webp';
 
   // ---- Which panda to show -------------------------------------------------
-  // From mildest to worst. AQI picks the panda; a very high PSI can push it further.
+  // From mildest to worst. The number in the headline picks the panda.
   const POSES = ['good', 'moderate', 'mask', 'cough', 'oxygen', 'passout'];
-  //   AQI  0-50 happy | 51-100 worried | 101-125 mask | 126-150 coughing | 151-200 oxygen mask | 201+ passed out
-  //   PSI  over 200 = at least oxygen mask | over 300 = passed out
-  function poseFor(aqi, psi) {
-    let p = aqi > 200 ? 5 : aqi > 150 ? 4 : aqi > 125 ? 3 : aqi > 100 ? 2 : aqi > 50 ? 1 : 0;
-    if (has(psi)) p = Math.max(p, psi > 300 ? 5 : psi > 200 ? 4 : 0);
+  // The panda follows the number in the headline, on whichever scale the visitor chose. One rule for
+  // PSI, Haze@SG AQI and US EPA AQI, because all three use the same 50 / 100 / 150 / 200 / 300 steps:
+  //   0-50 happy | 51-100 worried | 101-150 mask | 151-200 coughing | 201-300 oxygen mask | 301+ passed out
+  function poseFor(value) {
+    const p = value > 300 ? 5 : value > 200 ? 4 : value > 150 ? 3 : value > 100 ? 2 : value > 50 ? 1 : 0;
     return POSES[p];
   }
 
@@ -191,12 +191,15 @@
     document.documentElement.dataset.std = name;
     const sel = document.getElementById('stdChoice');
     if (sel) sel.value = name;
+    // The PSI | AQI switch above the cards shows the same choice (neither is lit on US EPA)
+    $$('#stdToggle button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.std === name ? 'true' : 'false'));
     if (remember) { try { localStorage.setItem(STD_KEY, name); } catch (e) { /* private mode: fine */ } }
     if (lastData) render(lastData, lastOpts);
   }
   (function () {
     const sel = document.getElementById('stdChoice');
     if (sel) sel.addEventListener('change', () => setChoice(sel.value, true));
+    $$('#stdToggle button').forEach((b) => b.addEventListener('click', () => setChoice(b.dataset.std, true)));
   })();
 
   function showPose(pose) {
@@ -272,7 +275,7 @@
       const st = STATE[stateKey];
       root.dataset.state = stateKey;
       root.dataset.tone = st.theme;
-      const pose = poseFor(aqiVal, ch.field === 'aqi' ? data.psi : null); // official PSI only nudges the AQI view
+      const pose = poseFor(aqiVal);
       root.dataset.pose = pose;
       setText('aqiBand', aqiBand.name);
       setText('tip', st.tip);
