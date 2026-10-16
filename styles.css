@@ -467,21 +467,10 @@ html.is-resting .ping, html.is-resting .fx i, html.is-resting .fx b, html.is-res
 .sub--est b { font-weight: 500; color: var(--ink); }
 .est__tag { padding: 1px 6px; border: 1px solid var(--hair); border-radius: 999px; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
 
-/* ---- Other standards ------------------------------------------------------- */
+/* ---- Standard picker (bottom of the page) ----------------------------------- */
+.refresh-row { flex-wrap: wrap; align-items: center; gap: 12px 16px; }
 .std__pick { display: flex; align-items: center; gap: 10px; }
-.std__pick select { height: 44px; padding: 0 36px 0 16px; border-radius: 999px; border: 1px solid var(--hair); background-color: var(--glass-bg); color: var(--ink); font: 500 14px var(--font); cursor: pointer; }
+.std__pick select { height: 44px; max-width: 100%; padding: 0 16px; border-radius: 999px; border: 1px solid var(--hair); background-color: var(--glass-bg); color: var(--ink); font: 500 14px var(--font); cursor: pointer; }
 .std__pick select:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.std__list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--hair); }
-.std__list li { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--hair); }
-.std__what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.std__what b { font-weight: 500; font-size: 15px; }
-.std__what small { font-size: 12px; color: var(--muted); }
-.std__val { display: flex; align-items: center; gap: 8px; flex: none; font-variant-numeric: tabular-nums; }
-.std__num { font-weight: 200; font-size: 32px; letter-spacing: -0.02em; }
-.std__band { font-size: 13px; color: var(--muted); }
-.std__note { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
-@media (max-width: 720px) {
-  .std__list li { flex-direction: column; align-items: flex-start; gap: 6px; }
-  .std__num { font-size: 26px; }
-  .std__pick { width: 100%; }
-}
+.std__note:empty { display: none; }
+@media (max-width: 720px) { .std__pick { width: 100%; } .std__pick select { flex: 1 1 auto; } }

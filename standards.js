@@ -1,6 +1,6 @@
 /* Haze Watch SG: standards.js
    Turns a PM2.5 reading (ug/m3) into an index number on several published scales.
-   Used by app.js (the PSI "hourly estimate" and the "Other standards" section).
+   Used by app.js: the PSI "hourly estimate" and the Standard menu at the bottom of the page.
    Also loads in Node (module.exports) so the maths can be tested.
 
    IMPORTANT: every scale below is DEFINED on a 24-hour average of PM2.5 (the US EPA uses a
@@ -37,7 +37,7 @@
       segs: [
         [0, 9.0, 0, 50, 'good', 'Good'],
         [9.1, 35.4, 51, 100, 'moderate', 'Moderate'],
-        [35.5, 55.4, 101, 150, 'sensitive', 'Unhealthy for sensitive groups'],
+        [35.5, 55.4, 101, 150, 'sensitive', 'Sensitive groups'],
         [55.5, 125.4, 151, 200, 'unhealthy', 'Unhealthy'],
         [125.5, 225.4, 201, 300, 'very', 'Very unhealthy'],
         [225.5, 325.4, 301, 500, 'hazard', 'Hazardous']
@@ -45,8 +45,6 @@
     }
   };
 
-  // WHO 2021 Global Air Quality Guidelines: 24-hour PM2.5 guideline level. A guideline, not an index.
-  const WHO_24H_PM25 = 15;
 
   const ok = (v) => typeof v === 'number' && isFinite(v) && v >= 0;
 
@@ -71,7 +69,7 @@
     return { band: seg[4], label: seg[5] };
   }
 
-  const api = { SCALES, WHO_24H_PM25, convert, bandOfIndex };
+  const api = { SCALES, convert, bandOfIndex };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.HazeStandards = api;
 })(typeof window !== 'undefined' ? window : this);

@@ -94,7 +94,7 @@
         <div class="cards">
           <div class="glass card">
             <div class="col">
-              <div class="label">AQI</div>
+              <div class="label" data-bind="aqiLabel">AQI</div>
               <div class="num" data-bind="aqi">–</div>
               <div class="sub"><span class="dot" data-band-for="aqi"></span><span data-bind="aqiBand">–</span></div>
             </div>
@@ -153,9 +153,9 @@
       <div class="isle__head">
         <div>
           <h2>Island view</h2>
-          <p class="isle__sub">AQI, 1 hr PM 2.5 (µg/m³) and 24-hour PSI by region. Colours show AQI.</p>
+          <p class="isle__sub"><span data-bind="aqiShort">AQI</span>, 1 hr PM 2.5 (µg/m³) and 24-hour PSI by region. Colours show <span data-bind="scaleName">AQI</span>.</p>
         </div>
-        <ul class="legend" aria-label="AQI bands">
+        <ul class="legend" id="legend" aria-label="AQI bands">
           <li><span class="dot" data-band="good"></span>Good</li>
           <li><span class="dot" data-band="moderate"></span>Moderate</li>
           <li><span class="dot" data-band="sensitive"></span>Sensitive groups</li>
@@ -180,49 +180,28 @@
 
         <div class="pin pin--north" data-region="north" style="left:43.12%;top:21.55%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">North</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">North</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--east" data-region="east" style="left:64.59%;top:39.38%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">East</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">East</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--west" data-region="west" style="left:23.71%;top:39.38%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">West</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">West</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--south" data-region="south" style="left:48.98%;top:61.09%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">South</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">South</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
         <div class="pin pin--central" data-region="central" style="left:47.02%;top:47.91%">
           <span class="ping"></span><span class="pin__dot"></span>
-          <div class="glass pill"><div class="pill__name">Central</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small>AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
+          <div class="glass pill"><div class="pill__name">Central</div><div class="pill__vals"><div><b data-r="aqi">–</b> <small data-bind="aqiShort">AQI</small></div><div><b data-r="pm25">–</b> <small>PM 2.5</small></div><div><b data-r="psi">–</b> <small>PSI</small></div></div></div>
         </div>
       </div>
 
       <!-- Phone fallback: map labels become this list -->
       <ul class="pinlist" id="pinlist"></ul>
-    </section>
-
-    <section class="glass isle std" aria-labelledby="stdTitle">
-      <div class="isle__head">
-        <div>
-          <h2 id="stdTitle">Other standards</h2>
-          <p class="isle__sub">The same air, read on different scales. Numbers from different countries are not interchangeable.</p>
-        </div>
-        <label class="std__pick"><span class="label">Show</span>
-          <select id="stdRegion" aria-controls="stdList">
-            <option value="island">Island average</option>
-            <option value="north">North</option>
-            <option value="south">South</option>
-            <option value="east">East</option>
-            <option value="west">West</option>
-            <option value="central">Central</option>
-          </select>
-        </label>
-      </div>
-      <ul class="std__list" id="stdList" aria-live="polite"></ul>
-      <p class="std__note">Calculated here from NEA's 1-hour PM 2.5. These scales are defined on 24-hour averages, so everything marked "hourly" is an early estimate, not an official reading. The WHO figure is a guideline level, not an index.</p>
     </section>
 
     <p class="foot">Data from data.gov.sg (NEA): 1-hour PM 2.5, 24-hour PSI, and temperature, humidity and wind from weather stations across the island. Feels like is calculated from these, not published by NEA.</p>
@@ -241,7 +220,7 @@
       </details>
       <details>
         <summary><h2>What is the AQI on this page?</h2></summary>
-        <p>AQI is the headline colour on this page. It is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300). It is worked out from the 1-hour PM 2.5 to match NEA's Haze@SG app: up to 55 µg/m³ it follows the earlier US EPA table, and above that it follows a straight line fitted to the app's readings. It is not NEA's PSI, and it is not today's stricter US EPA scale; compare both under "Other standards".</p>
+        <p>AQI is the headline colour on this page. It is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300). It is worked out from the 1-hour PM 2.5 to match NEA's Haze@SG app: up to 55 µg/m³ it follows the earlier US EPA table, and above that it follows a straight line fitted to the app's readings. It is not NEA's PSI, and it is not today's stricter US EPA scale; you can switch the page to the PSI or the current US EPA scale with the "Standard" menu at the bottom.</p>
       </details>
       <details>
         <summary><h2>Where do the readings come from?</h2></summary>
@@ -249,7 +228,17 @@
       </details>
     </section>
 
-    <div class="refresh-row"><button type="button" class="btn" id="refresh">Refresh</button></div>
+    <div class="refresh-row">
+      <label class="std__pick"><span class="label">Standard</span>
+        <select id="stdChoice">
+          <option value="default">AQI (as shown by Haze@SG)</option>
+          <option value="psi">NEA PSI, hourly estimate</option>
+          <option value="epa">US EPA AQI (2024)</option>
+        </select>
+      </label>
+      <button type="button" class="btn" id="refresh">Refresh</button>
+    </div>
+    <p class="foot std__note" id="stdNote" data-bind="stdNote"></p>
 
     <p class="foot" id="status" role="status"></p>
     <noscript><p class="foot">Live readings need JavaScript turned on. Without it, see the official readings at <a href="https://www.haze.gov.sg/">haze.gov.sg</a>.</p></noscript>
