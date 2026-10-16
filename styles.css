@@ -311,6 +311,23 @@ html[data-pose="cough"] .pose--cough { transform-origin: 50% 90%; animation: cou
 
 .credit { margin: 8px 0 0; padding-top: 24px; border-top: 1px solid var(--hair); text-align: center; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 
+/* ---- Quiet contact form (footer) ------------------------------------------- */
+.credit__link { margin-left: 6px; padding: 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; opacity: .75; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.credit__link:hover { opacity: 1; }
+.credit__link:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+.hello { max-width: 380px; margin: 28px auto 0; text-align: left; letter-spacing: normal; text-transform: none; }
+.hello[hidden] { display: none; }
+.hello input:not([type="hidden"]):not(.hello__trap), .hello textarea { display: block; width: 100%; box-sizing: border-box; padding: 10px 0; border: 0; border-bottom: 1px solid var(--hair); border-radius: 0; background: none; color: var(--ink); font: 400 15px var(--font); outline: none; }
+.hello textarea { resize: none; }
+.hello input:focus, .hello textarea:focus { border-bottom-color: var(--ink); }
+.hello ::placeholder { color: var(--muted); opacity: .7; }
+.hello__trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.hello__row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; }
+.hello__note { font-size: 12px; color: var(--muted); }
+.hello__send { padding: 0; border: 0; background: none; color: var(--ink); font: 500 13px var(--font); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
+.hello__send:disabled { opacity: .5; cursor: default; }
+.hello__send:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+
 /* ======================================================================
    Six pandas + temperature effects (all movement is done in code)
    ====================================================================== */

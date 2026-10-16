@@ -64,14 +64,12 @@ function feelsLike(t, rh, windMs) {
 }
 
 // ---- Island-wide numbers --------------------------------------------------
-// AQI and PM2.5 are the average of the five regions (this is what the Haze@SG app does).
-// PSI is also the plain average here. NEA may headline the highest region instead;
-// to switch, replace `mean` with Math.max in islandPsi.
-const islandMean = (vals) => {
+// AQI, PM2.5 and PSI each show the WORST (highest) of the five regions, not the average,
+// so a haze-hit region is never hidden by cleaner ones. Region numbers stay as they are.
+const islandWorst = (vals) => {
   const v = vals.filter((x) => x !== null);
-  return v.length >= 3 ? round(mean(v)) : null; // need at least 3 of 5 regions
+  return v.length >= 3 ? round(Math.max(...v)) : null; // need at least 3 of 5 regions
 };
-const islandPsi = (vals) => islandMean(vals);
 
 // ---- Air quality feeds (PM2.5 and PSI) ------------------------------------
 // An hourly record can show up before its numbers are filled in. So a record only counts if at
@@ -171,9 +169,9 @@ module.exports = async (req, res) => {
 
   const out = {
     updated: { pm25: pmItem ? pmItem.ts : null, psi: psiItem ? psiItem.ts : null, weather: T.ts },
-    aqi: islandMean(REGIONS.map((r) => regions[r].aqi)),
-    pm25: islandMean(REGIONS.map((r) => regions[r].pm25)),
-    psi: islandPsi(REGIONS.map((r) => regions[r].psi)),
+    aqi: islandWorst(REGIONS.map((r) => regions[r].aqi)),
+    pm25: islandWorst(REGIONS.map((r) => regions[r].pm25)),
+    psi: islandWorst(REGIONS.map((r) => regions[r].psi)),
     temp: T.v === null ? null : Math.round(T.v * 10) / 10,
     feels: feels === null ? null : Math.round(feels * 10) / 10,
     humidity: round(H.v),

@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/_ga/lib.js", "destination": "https://www.googletagmanager.com/gtag/js" },
+    { "source": "/_ga/g/collect", "destination": "https://www.google-analytics.com/g/collect" }
+  ]
+}

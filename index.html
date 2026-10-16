@@ -1,16 +1,15 @@
 <!doctype html>
 <html lang="en" data-state="moderate" data-tone="light" data-pose="moderate" data-std="nea">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-PS0F52V53T"></script>
+<meta charset="utf-8">
+<!-- Google Analytics, served through our own domain (see vercel.json rewrites) so fewer visits are lost to blockers and in-app browsers -->
+<script async src="/_ga/lib.js?id=G-PS0F52V53T"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
-  gtag('config', 'G-PS0F52V53T');
+  gtag('config', 'G-PS0F52V53T', { transport_url: location.origin + '/_ga' });
 </script>
-<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Singapore Haze Today: Live PSI, PM2.5 &amp; AQI | Haze Watch SG</title>
 <meta name="description" content="Singapore haze right now: 24-hour PSI, 1-hour PM2.5 and AQI for North, South, East, West and Central, plus temperature. NEA data, updated hourly.">
@@ -221,11 +220,11 @@
       </details>
       <details>
         <summary><h2>Why does another haze site show a different number?</h2></summary>
-        <p>There are three common reasons. <b>Which region:</b> the PSI at the top of this page is the average of the five regions, while some sites show the highest region, which is always the same or higher. <b>Which reading:</b> the official 24-hour PSI changes slowly, while "Now ≈" and sites that work from the 1-hour PM 2.5 move sooner. NEA publishes new readings once an hour, so two sites can also sit an hour apart if one has not picked up the newest reading yet. <b>Which scale:</b> the AQI, the PSI and the US EPA AQI are different scales, so their numbers are not meant to match. The "Standard" menu at the bottom lets you switch this page between them.</p>
+        <p>There are three common reasons. <b>Which region:</b> the island-wide numbers at the top of this page show the highest of the five regions. A site that averages the regions will show a lower number. <b>Which reading:</b> the official 24-hour PSI changes slowly, while "Now ≈" and sites that work from the 1-hour PM 2.5 move sooner. NEA publishes new readings once an hour, so two sites can also sit an hour apart if one has not picked up the newest reading yet. <b>Which scale:</b> the AQI, the PSI and the US EPA AQI are different scales, so their numbers are not meant to match. The "Standard" menu at the bottom lets you switch this page between them.</p>
       </details>
       <details>
         <summary><h2>What is the AQI on this page?</h2></summary>
-        <p>The page opens on NEA's 24-hour PSI. If you pick "AQI" in the Standard menu at the bottom, the headline, colours and panda follow the AQI instead. The AQI is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300). It is worked out from the 1-hour PM 2.5 to match NEA's Haze@SG app: up to 55 µg/m³ it follows the earlier US EPA table, and above that it follows a straight line fitted to the app's readings. It is not NEA's PSI, and it is not today's stricter US EPA scale; you can switch the page to the PSI hourly estimate or the current US EPA scale with the "Standard" menu at the bottom, and the page remembers your choice.</p>
+        <p>The page opens on NEA's 24-hour PSI. If you pick "AQI" in the Standard menu at the bottom, the headline, colours and panda follow the AQI instead. The AQI is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300). It is worked out from the 1-hour PM 2.5 to match NEA's Haze@SG app: up to 55 µg/m³ it follows the earlier US EPA table, and above that it follows a straight line fitted to the app's readings. The island-wide number is the highest of the five regions, not an average. It is not NEA's PSI, and it is not today's stricter US EPA scale; you can switch the page to the PSI hourly estimate or the current US EPA scale with the "Standard" menu at the bottom, and the page remembers your choice.</p>
       </details>
       <details>
         <summary><h2>Where do the readings come from?</h2></summary>
@@ -250,11 +249,28 @@
     <noscript><p class="foot">Live readings need JavaScript turned on. Without it, see the official readings at <a href="https://www.haze.gov.sg/">haze.gov.sg</a>.</p></noscript>
 
 
-    <footer class="credit">Built by Considered House (Singapore)</footer>
+    <footer class="credit">
+      Built by Considered House (Singapore) &middot;
+      <button type="button" class="credit__link" id="helloToggle" aria-expanded="false" aria-controls="hello">Say hello</button>
+      <form class="hello" id="hello" hidden>
+        <input type="hidden" name="access_key" value="43234267-99fd-4020-9e65-91d40ed3765a">
+        <input type="hidden" name="subject" value="New message from Haze Watch SG">
+        <input type="hidden" name="from_name" value="Haze Watch SG">
+        <input type="checkbox" name="botcheck" class="hello__trap" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <input type="text" name="name" placeholder="Name" aria-label="Name" autocomplete="name" required>
+        <input type="email" name="email" placeholder="Email" aria-label="Email" autocomplete="email" required>
+        <textarea name="message" placeholder="Message" aria-label="Message" rows="3" required></textarea>
+        <div class="hello__row">
+          <span class="hello__note" id="helloStatus" role="status">I read everything.</span>
+          <button type="submit" class="hello__send">Send &rarr;</button>
+        </div>
+      </form>
+    </footer>
   </main>
 </div>
 <script src="standards.js"></script>
 <script src="app.js"></script>
 <script src="data.js"></script>
+<script src="contact.js" defer></script>
 </body>
 </html>
