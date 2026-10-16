@@ -191,12 +191,15 @@
     document.documentElement.dataset.std = name;
     const sel = document.getElementById('stdChoice');
     if (sel) sel.value = name;
+    // The PSI | AQI switch above the cards shows the same choice (neither is lit on US EPA)
+    $$('#stdToggle button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.std === name ? 'true' : 'false'));
     if (remember) { try { localStorage.setItem(STD_KEY, name); } catch (e) { /* private mode: fine */ } }
     if (lastData) render(lastData, lastOpts);
   }
   (function () {
     const sel = document.getElementById('stdChoice');
     if (sel) sel.addEventListener('change', () => setChoice(sel.value, true));
+    $$('#stdToggle button').forEach((b) => b.addEventListener('click', () => setChoice(b.dataset.std, true)));
   })();
 
   function showPose(pose) {
