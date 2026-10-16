@@ -100,9 +100,9 @@ Nav pill, then a hero (band word, tip, metrics card AQI | 1 hr PM 2.5 (µg/m³) 
 
 ## Hourly PSI estimate and other standards
 
-- `standards.js` holds the PM2.5 breakpoint tables (NEA PSI, US EPA 2024, India NAQI) and one `convert(scale, pm25)` function. It also loads in Node, so the maths can be tested with `require('./standards.js')`.
+- `standards.js` holds the PM2.5 breakpoint tables (NEA PSI and US EPA 2024) and one `convert(scale, pm25)` function. It also loads in Node, so the maths can be tested with `require('./standards.js')`.
 - **Hourly PSI estimate** ("Now ≈ N est." under the PSI): NEA's PM2.5 sub-index formula applied to the latest 1-hour PM2.5, so it moves sooner than the official 24-hour PSI. It is an estimate: the official PSI is a 24-hour average and also weighs other pollutants. Check value from NEA's document: 40 µg/m³ gives PSI 83.
-- **Other standards** section (below the island map): the same reading on NEA PSI (24-hour and hourly estimate), the page's own AQI, US EPA AQI (2024 breakpoints), India NAQI and the WHO 24-hour guideline (a ratio, not an index), for the island average or any one region. All of these scales are defined on 24-hour averages, so they are labelled as estimates when worked out from the 1-hour reading.
+- **Other standards** section (below the island map): the same reading on NEA PSI (24-hour and hourly estimate), the page's own AQI, US EPA AQI (2024 breakpoints) and the WHO 24-hour guideline (a ratio, not an index), for the island average or any one region. All of these scales are defined on 24-hour averages, so they are labelled as estimates when worked out from the 1-hour reading.
 - The headline AQI, panda and map colours are unchanged. That AQI is matched to NEA's Haze@SG app (earlier US EPA table up to 55 µg/m³, then a fitted line), see `toAqi` in `api/haze.js`.
 - To add a scale: add an entry to `SCALES` in `standards.js` and one `addScale(...)` line in `stdRows()` in `app.js`.
 

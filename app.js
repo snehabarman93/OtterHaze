@@ -157,10 +157,9 @@
     const aqi = one ? r.aqi : data && data.aqi;
     const ab = has(aqi) ? bandOf(AQI_BANDS, aqi) : null;
     rows.push({ title: 'AQI on this page', note: "Matched to NEA's Haze@SG app", value: aqi, band: ab && key(ab), label: ab && ab.name });
-    // 4. US EPA 2024, 5. India
+    // 4. US EPA 2024
     addScale('epa', 'US EPA AQI (2024)', 'Stricter; in force since May 2024');
-    addScale('india', 'India NAQI', 'More lenient at low levels');
-    // 6. WHO guideline level (not an index)
+    // 5. WHO guideline level (not an index)
     if (has(pm)) {
       const x = pm / STD.WHO_24H_PM25;
       rows.push({ title: 'WHO 24-hour guideline', note: 'Guideline level of ' + STD.WHO_24H_PM25 + ' µg/m³, not an index',

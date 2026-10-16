@@ -42,21 +42,6 @@
         [125.5, 225.4, 201, 300, 'very', 'Very unhealthy'],
         [225.5, 325.4, 301, 500, 'hazard', 'Hazardous']
       ]
-    },
-    // India National AQI (CPCB), PM2.5 24-hour. 250 is the top of "Very poor"; the top of "Severe" (380) is
-    // the CPCB figure as best recalled and only matters above 250 ug/m3.
-    india: {
-      name: 'India NAQI',
-      round: 0,
-      cap: 500,
-      segs: [
-        [0, 30, 0, 50, 'good', 'Good'],
-        [31, 60, 51, 100, 'moderate', 'Satisfactory'],
-        [61, 90, 101, 200, 'sensitive', 'Moderate'],
-        [91, 120, 201, 300, 'unhealthy', 'Poor'],
-        [121, 250, 301, 400, 'very', 'Very poor'],
-        [251, 380, 401, 500, 'hazard', 'Severe']
-      ]
     }
   };
 
