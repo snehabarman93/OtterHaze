@@ -89,7 +89,7 @@ Nav pill, then a hero (band word, tip, metrics card AQI | 1 hr PM 2.5 (µg/m³) 
 - `<head>` in `index.html` carries the page title, description, canonical link, Open Graph and Twitter share tags (picture: `assets/og.png`, 1200x630) and one JSON-LD block (WebSite and WebApplication).
 - The site address `https://sghaze.vercel.app/` is written out in full, because these tags need absolute URLs and there is no build step. It appears 8 times in `index.html` (canonical, `og:url`, `og:image`, `twitter:image`, and four times in the JSON-LD), once in `robots.txt` and once in `sitemap.xml`. If the site moves to its own domain, change all 10 (`grep -rn sghaze.vercel.app .` finds them).
 - The page headline is `<h1><span class="sr-only">Singapore haze today: </span><span data-bind="aqiBand">…</span></h1>`; the hidden words are for screen readers and search engines, and only the inner span is filled by `app.js`.
-- Analytics is Google Analytics 4 only (`gtag.js`, at the very top of `<head>`, proxied through `/_ga` in `vercel.json`). Vercel Web Analytics was removed in Oct 2026 because it becomes a paid feature. Google Analytics uses cookies by default and the site has no consent banner yet.
+- Analytics is Google Analytics 4 only (standard `gtag.js` tag, at the very top of `<head>`). A first-party `/_ga` proxy via `vercel.json` rewrites was tried and removed on 16 Oct 2026 because its collect requests returned 503 and lost page views. Vercel Web Analytics was removed in Oct 2026 because it becomes a paid feature. Google Analytics uses cookies by default and the site has no consent banner yet.
 
 ## Live data
 
