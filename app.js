@@ -124,6 +124,71 @@
   const EMPTY = { aqi: null, pm25: null, psi: null, temp: null, feels: null, regions: {} };
   const REGIONS = ['north', 'east', 'west', 'south', 'central'];
 
+  // ---- Standard picker (see standards.js) ------------------------------------
+  // The dropdown at the bottom changes which scale the "AQI" number, the headline word, the panda,
+  // the map colours and the region numbers use. Everything else (PM 2.5, official PSI, weather) stays.
+  const STD = window.HazeStandards;
+  const CHOICES = {
+    default: { label: 'AQI', short: 'AQI', name: 'AQI',
+      note: "The AQI shown here is matched to NEA's Haze@SG app." },
+    psi: { scale: 'psi', label: 'PSI, hourly est.', short: 'PSI est.', name: 'NEA PSI, hourly estimate',
+      note: "NEA's PSI formula applied to the latest 1-hour PM 2.5. An estimate, not an official reading." },
+    epa: { scale: 'epa', label: 'US EPA AQI', short: 'EPA AQI', name: 'US EPA AQI (2024)',
+      note: "US EPA's 2024 scale, worked out from the 1-hour PM 2.5. It is stricter than the PSI." }
+  };
+  let choiceKey = 'default', lastData = null, lastOpts = null, legendFor = null;
+  // Island-wide number on one scale = average of the regions' numbers, needing at least 3 of 5
+  // (the same rule api/haze.js uses for AQI and PSI).
+  function islandOf(scaleKey, regionsIn) {
+    if (!STD) return null;
+    const v = REGIONS.map((r) => { const c = STD.convert(scaleKey, (regionsIn[r] || {}).pm25); return c ? c.value : null; }).filter(has);
+    return v.length >= 3 ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null;
+  }
+  // Number for a region (or the whole island) on the chosen scale
+  function valueOn(ch, data, regionName) {
+    const regionsIn = data.regions || {};
+    if (!ch.scale) return regionName ? (regionsIn[regionName] || {}).aqi : data.aqi;
+    if (!STD) return null;
+    if (regionName) { const c = STD.convert(ch.scale, (regionsIn[regionName] || {}).pm25); return c ? c.value : null; }
+    return islandOf(ch.scale, regionsIn);
+  }
+  // { key, name } of the band a number falls in on the chosen scale, or null
+  function bandInfo(ch, v) {
+    if (!has(v)) return null;
+    if (!ch.scale) { const b = bandOf(AQI_BANDS, v); return { key: key(b), name: b.name }; }
+    const b = STD && STD.bandOfIndex(ch.scale, v);
+    return b ? { key: b.band, name: b.label } : null;
+  }
+  // Legend dots under "Island view" follow the chosen scale
+  function buildLegend(ch, choiceName) {
+    if (legendFor === choiceName) return;
+    legendFor = choiceName;
+    const host = $('#legend');
+    if (!host) return;
+    const items = !ch.scale ? AQI_BANDS.map((b) => ({ key: key(b), name: b.name }))
+      : STD.SCALES[ch.scale].segs.map((x) => ({ key: x[4], name: x[5] }))
+          .filter((it, i, a) => a.findIndex((o) => o.key === it.key) === i);
+    host.textContent = '';
+    host.setAttribute('aria-label', ch.name + ' bands');
+    items.forEach((it) => {
+      const li = document.createElement('li');
+      const d = document.createElement('span'); d.className = 'dot'; d.dataset.band = it.key;
+      li.appendChild(d); li.appendChild(document.createTextNode(it.name));
+      host.appendChild(li);
+    });
+  }
+  function setChoice(name) {
+    if (!CHOICES[name] || (name !== 'default' && !STD)) name = 'default';
+    choiceKey = name;
+    const sel = document.getElementById('stdChoice');
+    if (sel) sel.value = name;
+    if (lastData) render(lastData, lastOpts);
+  }
+  (function () {
+    const sel = document.getElementById('stdChoice');
+    if (sel) sel.addEventListener('change', () => setChoice(sel.value));
+  })();
+
   function showPose(pose) {
     // Load only the picture being shown (all of them together are a few MB)
     $$('.pose').forEach((img) => {
@@ -185,16 +250,19 @@
     const regionsIn = data.regions || {};
     const loading = opts.bandword === 'Loading'; // while loading, regions show dashes, not "No data"
 
-    const aqiBand = has(data.aqi) ? bandOf(AQI_BANDS, data.aqi) : null;
+    lastData = data; lastOpts = opts;
+    const ch = CHOICES[choiceKey];
+    const aqiVal = valueOn(ch, data);
+    const aqiBand = bandInfo(ch, aqiVal);
     const psiBand = has(data.psi) ? bandOf(PSI_BANDS, data.psi) : null;
     const pmBand = has(data.pm25) ? bandOf(PM25_BANDS, data.pm25) : null;
 
     if (aqiBand) {
-      const stateKey = key(aqiBand);
+      const stateKey = aqiBand.key;
       const st = STATE[stateKey];
       root.dataset.state = stateKey;
       root.dataset.tone = st.theme;
-      const pose = poseFor(data.aqi, data.psi);
+      const pose = poseFor(aqiVal, ch.scale ? null : data.psi); // official PSI only nudges the default view
       root.dataset.pose = pose;
       setText('aqiBand', aqiBand.name);
       setText('tip', st.tip);
@@ -209,11 +277,18 @@
     if (has(data.temp)) root.dataset.temp = TEMP_STEPS.find((t) => data.temp <= t.max).key;
     else delete root.dataset.temp;
 
-    setText('aqi', dash(data.aqi));
+    setText('aqi', dash(aqiVal));
+    setText('aqiLabel', ch.label);
+    setText('aqiShort', ch.short);
+    setText('scaleName', ch.name);
+    setText('stdNote', ch.note);
+    buildLegend(ch, choiceKey);
     setText('pm25', dash(data.pm25));
     setText('psi', dash(data.psi));
     setText('temp', deg(data.temp));
     setText('feels', deg(data.feels));
+    // Hourly PSI estimate: NEA's PSI formula applied to the 1-hour PM2.5 (see standards.js)
+    setText('psiNow', dash(islandOf('psi', regionsIn)));
     setText('psiBand', psiBand ? psiBand.name : '\u2013');
     setText('pm25Band', pmBand ? pmBand.name : '\u2013');
     setText('tempNote', opts.tempNote || (has(data.temp) ? 'Right now' : 'Unavailable'));
@@ -225,7 +300,7 @@
       setText('feelsNote', 'Unavailable');
     }
 
-    $$('[data-band-for="aqi"]').forEach((el) => { aqiBand ? (el.dataset.band = key(aqiBand)) : delete el.dataset.band; });
+    $$('[data-band-for="aqi"]').forEach((el) => { aqiBand ? (el.dataset.band = aqiBand.key) : delete el.dataset.band; });
     $$('[data-band-for="pm25"]').forEach((el) => { pmBand ? (el.dataset.band = key(pmBand)) : delete el.dataset.band; });
     $$('[data-band-for="psi"]').forEach((el) => { psiBand ? (el.dataset.band = key(psiBand)) : delete el.dataset.band; });
 
@@ -236,16 +311,18 @@
     list.textContent = '';
     REGIONS.forEach((name) => {
       const r = regionsIn[name] || {};
-      const band = has(r.aqi) ? key(bandOf(AQI_BANDS, r.aqi)) : null; // colour follows AQI, same as the headline
+      const rv = valueOn(ch, data, name);
+      const rb = bandInfo(ch, rv);
+      const band = rb ? rb.key : null; // colour follows the chosen scale, same as the headline
       const pin = $('.pin[data-region="' + name + '"]');
       const zone = $('.zone[data-zone="' + name + '"]');
       if (band) { pin.dataset.band = band; zone.dataset.band = band; }
       else { delete pin.dataset.band; delete zone.dataset.band; }
-      $('[data-r="aqi"]', pin).textContent = dash(r.aqi);
+      $('[data-r="aqi"]', pin).textContent = dash(rv);
       $('[data-r="pm25"]', pin).textContent = dash(r.pm25);
       $('[data-r="psi"]', pin).textContent = dash(r.psi);
       // A region with no readings at all says so, instead of three dashes
-      const none = !has(r.aqi) && !has(r.pm25) && !has(r.psi) && !loading;
+      const none = !has(rv) && !has(r.pm25) && !has(r.psi) && !loading;
       pin.classList.toggle('is-nodata', none);
 
       const li = document.createElement('li');
@@ -265,7 +342,7 @@
         list.appendChild(li);
         return;
       }
-      [['AQI', r.aqi], ['PM 2.5', r.pm25], ['PSI', r.psi]].forEach((s) => {
+      [[ch.short, rv], ['PM 2.5', r.pm25], ['PSI', r.psi]].forEach((s) => {
         const d = document.createElement('div');
         d.className = 's';
         d.innerHTML = '<b>' + dash(s[1]) + '</b><small>' + s[0] + '</small>';
@@ -292,7 +369,7 @@
     hazard:    demo(330, 260, 380, 34, 41)
   };
 
-  window.HazeWatch = { render, DEMO, AQI_BANDS, PSI_BANDS, PM25_BANDS, EMPTY, setMascot, MASCOTS };
+  window.HazeWatch = { render, setChoice, CHOICES, DEMO, AQI_BANDS, PSI_BANDS, PM25_BANDS, EMPTY, setMascot, MASCOTS };
 
   // ---- Pause the animations while the tab is not visible -------------------
   const syncHidden = () => document.documentElement.classList.toggle('is-hidden', document.hidden);
@@ -345,6 +422,7 @@
   try { saved = localStorage.getItem('hazewatch.mascot'); } catch (e) { /* ignore */ }
   buildPicker();
   setMascot(MASCOTS[params.get('mascot')] ? params.get('mascot') : MASCOTS[saved] ? saved : DEFAULT_MASCOT, false);
+  if (CHOICES[params.get('standard')] && (params.get('standard') === 'default' || STD)) { choiceKey = params.get('standard'); const sel = document.getElementById('stdChoice'); if (sel) sel.value = choiceKey; }
   const demoKey = params.get('demo');
   if (DEMO[demoKey]) {
     // Optional overrides for previewing, e.g. ?demo=good&aqi=180&psi=250&temp=22&feels=24
