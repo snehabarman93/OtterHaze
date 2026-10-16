@@ -442,7 +442,6 @@ html[data-mascot="otter"][data-pose="oxygen"]  { --hx: 56%; --hy: 30%; --hrx: 15
 html[data-mascot="otter"][data-pose="passout"] { --hx: 30%; --hy: 84%; --hrx: 14%; --hry: 8%;  --mx: 29%; --my: 88%; }
 
 .refresh-row { display: flex; margin-top: -18px; }   /* sits just under the data note */
-.refresh-row .btn { background: var(--glass-bg); }
 
 .live { flex: none; }   /* never squash the status dot into an oval */
 @media (max-width: 350px) { .nav__meta { display: none; } }
@@ -493,8 +492,12 @@ html.is-resting .ping, html.is-resting .fx i, html.is-resting .fx b, html.is-res
 .std__note:empty { display: none; }
 @media (max-width: 720px) { .std__pick { width: 100%; } .std__pick select { flex: 1 1 auto; } }
 
-/* NEA view: the first column already is the 24-hour PSI, so the PSI column and region PSI values are not repeated */
-.sub--est-first { display: none; }
-html[data-std="nea"] .sub--est-first { display: flex; }
-html[data-std="nea"] .col--psi { display: none; }
-html[data-std="nea"] .pill__vals > div:nth-child(3) { display: none; }
+
+/* ---- Refresh icon button (header) ------------------------------------------- */
+.refresh-btn { flex: none; width: 36px; height: 36px; display: inline-grid; place-items: center; padding: 0; border-radius: 50%; border: 1px solid var(--hair); background: var(--glass-bg); color: var(--ink); cursor: pointer; }
+.refresh-btn:hover { background: var(--hair); }
+.refresh-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.refresh-btn svg { display: block; }
+.refresh-btn.is-spinning svg { animation: refresh-spin .8s linear infinite; }
+@keyframes refresh-spin { to { transform: rotate(360deg); } }
+@media (max-width: 720px) { .refresh-btn { width: 32px; height: 32px; } .refresh-btn svg { width: 18px; height: 18px; } }

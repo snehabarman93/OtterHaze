@@ -130,11 +130,8 @@
   const STD = window.HazeStandards;
   // `field`: a number the page already has (NEA's official PSI, or the page's own AQI).
   // `scale`: a number worked out here from the 1-hour PM 2.5 (see standards.js).
-  const DEFAULT_CHOICE = 'nea';   // what a first-time visitor sees: NEA's own 24-hour PSI
+  const DEFAULT_CHOICE = 'psi';   // what a first-time visitor sees: the NEA PSI hourly estimate
   const CHOICES = {
-    nea: { field: 'psi', label: 'PSI 24-hour', short: 'PSI', name: 'NEA PSI, 24-hour',
-      regionLine: '1 hr PM 2.5 (\u00b5g/m\u00b3) and 24-hour PSI by region.',
-      note: "NEA's official 24-hour PSI." },
     aqi: { field: 'aqi', label: 'AQI', short: 'AQI', name: 'AQI',
       regionLine: 'AQI, 1 hr PM 2.5 (\u00b5g/m\u00b3) and 24-hour PSI by region.',
       note: "The AQI formula is matched to NEA's Haze@SG app. The island-wide number is the highest of the five regions. It is not the PSI." },
@@ -191,7 +188,7 @@
   function setChoice(name, remember) {
     if (!usable(name)) name = DEFAULT_CHOICE;
     choiceKey = name;
-    document.documentElement.dataset.std = name;   // lets styles.css hide the duplicate PSI column in the NEA view
+    document.documentElement.dataset.std = name;
     const sel = document.getElementById('stdChoice');
     if (sel) sel.value = name;
     if (remember) { try { localStorage.setItem(STD_KEY, name); } catch (e) { /* private mode: fine */ } }

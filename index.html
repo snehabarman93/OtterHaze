@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-state="moderate" data-tone="light" data-pose="moderate" data-std="nea">
+<html lang="en" data-state="moderate" data-tone="light" data-pose="moderate" data-std="psi">
 <head>
 <meta charset="utf-8">
 <!-- Google Analytics, served through our own domain (see vercel.json rewrites) so fewer visits are lost to blockers and in-app browsers -->
@@ -81,6 +81,7 @@
       <div class="nav__brand">Haze Watch SG</div>
       <div class="nav__right">
         <span class="nav__meta"><span class="live" id="live"></span><span id="updated">Updated hourly</span></span>
+        <button type="button" class="refresh-btn" id="refresh" aria-label="Refresh readings" title="Refresh readings"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20.5 3.5v5h-5" fill="currentColor"/></svg></button>
         <div class="mascot-picker" id="mascotPicker" role="radiogroup" aria-label="Choose your mascot"></div>
       </div>
     </header>
@@ -93,10 +94,9 @@
         <div class="cards">
           <div class="glass card">
             <div class="col">
-              <div class="label" data-bind="aqiLabel">PSI 24-hour</div>
+              <div class="label" data-bind="aqiLabel">PSI est.</div>
               <div class="num" data-bind="aqi">–</div>
               <div class="sub"><span class="dot" data-band-for="aqi"></span><span data-bind="aqiBand">–</span></div>
-              <div class="sub sub--est sub--est-first" title="Worked out from the 1-hour PM 2.5 with NEA's own PSI formula. An estimate, not an official reading.">Now ≈ <b data-bind="psiNow">–</b> <span class="est__tag">est.</span></div>
             </div>
             <div class="col">
               <div class="label">1 hr PM 2.5</div>
@@ -107,7 +107,6 @@
               <div class="label">PSI 24-hour</div>
               <div class="num" data-bind="psi">–</div>
               <div class="sub"><span class="dot" data-band-for="psi"></span><span data-bind="psiBand">–</span></div>
-              <div class="sub sub--est" title="Worked out from the 1-hour PM 2.5 with NEA's own PSI formula. An estimate, not an official reading.">Now ≈ <b data-bind="psiNow">–</b> <span class="est__tag">est.</span></div>
             </div>
           </div>
 
@@ -224,7 +223,7 @@
       </details>
       <details>
         <summary><h2>What is the AQI on this page?</h2></summary>
-        <p>The page opens on NEA's 24-hour PSI. If you pick "AQI" in the Standard menu at the bottom, the headline, colours and panda follow the AQI instead. The AQI is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300). It is worked out from the 1-hour PM 2.5 to match NEA's Haze@SG app: up to 55 µg/m³ it follows the earlier US EPA table, and above that it follows a straight line fitted to the app's readings. The island-wide number is the highest of the five regions, not an average. It is not NEA's PSI, and it is not today's stricter US EPA scale; you can switch the page to the PSI hourly estimate or the current US EPA scale with the "Standard" menu at the bottom, and the page remembers your choice.</p>
+        <p>The page opens on the NEA PSI hourly estimate. If you pick "AQI" in the Standard menu at the bottom, the headline, colours and panda follow the AQI instead. The AQI is a single score for how clean the air is, from Good (0 to 50) up to Hazardous (above 300). It is worked out from the 1-hour PM 2.5 to match NEA's Haze@SG app: up to 55 µg/m³ it follows the earlier US EPA table, and above that it follows a straight line fitted to the app's readings. The island-wide number is the highest of the five regions, not an average. It is not NEA's PSI, and it is not today's stricter US EPA scale; you can switch the page back to the PSI hourly estimate or over to the current US EPA scale with the "Standard" menu at the bottom, and the page remembers your choice.</p>
       </details>
       <details>
         <summary><h2>Where do the readings come from?</h2></summary>
@@ -235,13 +234,11 @@
     <div class="refresh-row">
       <label class="std__pick"><span class="label">Standard</span>
         <select id="stdChoice">
-          <option value="nea">NEA PSI, 24-hour (default)</option>
+          <option value="psi">NEA PSI, hourly estimate (default)</option>
           <option value="aqi">AQI (as shown by Haze@SG)</option>
-          <option value="psi">NEA PSI, hourly estimate</option>
           <option value="epa">US EPA AQI (2024)</option>
         </select>
       </label>
-      <button type="button" class="btn" id="refresh">Refresh</button>
     </div>
     <p class="foot std__note" id="stdNote" data-bind="stdNote"></p>
 

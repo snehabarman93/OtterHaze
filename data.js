@@ -98,7 +98,7 @@
     if (busy) return;
     busy = true;
     btn.setAttribute('aria-busy', 'true'); // not disabled, so keyboard focus stays on the button
-    if (manual) btn.textContent = 'Refreshing…';
+    if (manual) btn.classList.add('is-spinning');
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), 9000);
     try {
@@ -132,7 +132,7 @@
       clearTimeout(timer);
       busy = false;
       btn.removeAttribute('aria-busy');
-      btn.textContent = 'Refresh';
+      btn.classList.remove('is-spinning');
     }
   }
 
