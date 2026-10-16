@@ -243,11 +243,28 @@
     <noscript><p class="foot">Live readings need JavaScript turned on. Without it, see the official readings at <a href="https://www.haze.gov.sg/">haze.gov.sg</a>.</p></noscript>
 
 
-    <footer class="credit">Built by Considered House (Singapore)</footer>
+    <footer class="credit">
+      Built by Considered House (Singapore) &middot;
+      <button type="button" class="credit__link" id="helloToggle" aria-expanded="false" aria-controls="hello">Say hello</button>
+      <form class="hello" id="hello" hidden>
+        <input type="hidden" name="access_key" value="43234267-99fd-4020-9e65-91d40ed3765a">
+        <input type="hidden" name="subject" value="New message from Haze Watch SG">
+        <input type="hidden" name="from_name" value="Haze Watch SG">
+        <input type="checkbox" name="botcheck" class="hello__trap" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <input type="text" name="name" placeholder="Name" aria-label="Name" autocomplete="name" required>
+        <input type="email" name="email" placeholder="Email" aria-label="Email" autocomplete="email" required>
+        <textarea name="message" placeholder="Message" aria-label="Message" rows="3" required></textarea>
+        <div class="hello__row">
+          <span class="hello__note" id="helloStatus" role="status">I read everything.</span>
+          <button type="submit" class="hello__send">Send &rarr;</button>
+        </div>
+      </form>
+    </footer>
   </main>
 </div>
 <script src="standards.js"></script>
 <script src="app.js"></script>
 <script src="data.js"></script>
+<script src="contact.js" defer></script>
 </body>
 </html>
